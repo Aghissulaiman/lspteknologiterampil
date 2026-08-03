@@ -67,7 +67,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3 cursor-pointer">
           <div>
             <Image 
-              src="/Logo/Logo.png" 
+              src="/Logo/Logo2.png" 
               alt="Logo LSP Teknologi Terampil"
               width={80}
               height={80}
