@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { Menu, X, Sun, Moon, Check } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -12,10 +12,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Helper/Hook untuk mendeteksi status mounted secara aman tanpa re-render berantai
+const emptySubscribe = () => () => {};
+function useIsMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,  // Hasil saat di Client
+    () => false  // Hasil saat di SSR (Server)
+  );
+}
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useIsMounted();
 
   const currentTheme = mounted ? (resolvedTheme ?? theme ?? "light") : "light";
   const isDarkTheme = currentTheme === "dark";
@@ -27,11 +37,6 @@ export default function Navbar() {
     root.classList.remove("dark", "light");
     root.classList.add(nextTheme);
   };
-
-  // Mencegah hydration mismatch & panic di Server-Side Rendering
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Sinkronkan class tema di HTML root secara aman saat theme berubah
   useEffect(() => {
