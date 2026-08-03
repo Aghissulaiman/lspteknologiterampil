@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Menu, X, Sun, Moon, Flame, Check } from "lucide-react";
+import { Menu, X, Sun, Moon, Check } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +14,19 @@ import {
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  const currentTheme = mounted ? (resolvedTheme ?? theme ?? "light") : "light";
+  const isDarkTheme = currentTheme === "dark";
+
+  const syncThemeToRoot = (nextTheme: "light" | "dark") => {
+    if (typeof window === "undefined") return;
+
+    const root = document.documentElement;
+    root.classList.remove("dark", "light");
+    root.classList.add(nextTheme);
+  };
 
   // Mencegah hydration mismatch & panic di Server-Side Rendering
   useEffect(() => {
@@ -25,16 +36,12 @@ export default function Navbar() {
   // Sinkronkan class tema di HTML root secara aman saat theme berubah
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
+    syncThemeToRoot(currentTheme as "light" | "dark");
+  }, [mounted, currentTheme]);
 
-    const root = document.documentElement;
-    root.classList.remove("dark", "orange");
-
-    if (theme === "dark") root.classList.add("dark");
-    if (theme === "orange") root.classList.add("orange");
-  }, [mounted, theme]);
-
-  const applyTheme = (nextTheme: "light" | "dark" | "orange") => {
+  const applyTheme = (nextTheme: "light" | "dark") => {
     setTheme(nextTheme);
+    syncThemeToRoot(nextTheme);
   };
 
   const navLinks = [
@@ -64,14 +71,11 @@ export default function Navbar() {
             />
           </div>
           
-          {/* Teks Brand 2 Baris */}
+          {/* Teks Brand */}
           <div className="flex flex-col">
             <span className="text-lg font-bold leading-tight tracking-tight text-foreground">
               LSP <span className="text-primary transition-colors duration-200">Teknologi Terampil</span>
             </span>
-            {/* <span className="text-sm font-semibold tracking-wide text-primary transition-colors ml-10 duration-200">
-              Mayantara
-            </span> */}
           </div>
         </div>
 
@@ -100,56 +104,44 @@ export default function Navbar() {
                 className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer select-none"
                 aria-label="Pilih Tema"
               >
-                {mounted && theme === "dark" && <Moon className="h-4 w-4 text-blue-400" />}
-                {mounted && theme === "orange" && <Flame className="h-4 w-4 text-orange-500" />}
-                {mounted && (theme === "light" || !theme) && <Sun className="h-4 w-4 text-amber-500" />}
+                {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
+                {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
               </div>
             </DropdownMenuTrigger>
-            
+
             <DropdownMenuContent align="end" className="w-36">
-              <DropdownMenuItem 
-                onClick={() => applyTheme("light")} 
+              <DropdownMenuItem
+                onClick={() => applyTheme("light")}
                 className="flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Sun className="h-4 w-4 text-amber-500" />
                   <span>Terang</span>
                 </div>
-                {mounted && theme === "light" && <Check className="h-4 w-4" />}
+                {mounted && !isDarkTheme && <Check className="h-4 w-4" />}
               </DropdownMenuItem>
 
-              <DropdownMenuItem 
-                onClick={() => applyTheme("dark")} 
+              <DropdownMenuItem
+                onClick={() => applyTheme("dark")}
                 className="flex items-center justify-between cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Moon className="h-4 w-4 text-blue-400" />
                   <span>Gelap</span>
                 </div>
-                {mounted && theme === "dark" && <Check className="h-4 w-4" />}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem 
-                onClick={() => applyTheme("orange")} 
-                className="flex items-center justify-between cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  <span>Oranye</span>
-                </div>
-                {mounted && theme === "orange" && <Check className="h-4 w-4" />}
+                {mounted && isDarkTheme && <Check className="h-4 w-4" />}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* CTA Button */}
           <Button 
-  variant="default" 
-  size="lg" 
-  className="font-semibold shadow-md bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
->
-  Pendaftaran Sertifikasi
-</Button>
+            variant="default" 
+            size="lg" 
+            className="font-semibold shadow-md bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
+          >
+            Pendaftaran Sertifikasi
+          </Button>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -163,9 +155,8 @@ export default function Navbar() {
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer select-none"
                 aria-label="Pilih Tema"
               >
-                {mounted && theme === "dark" && <Moon className="h-4 w-4 text-blue-400" />}
-                {mounted && theme === "orange" && <Flame className="h-4 w-4 text-orange-500" />}
-                {mounted && (theme === "light" || !theme) && <Sun className="h-4 w-4 text-amber-500" />}
+                {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
+                {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -174,9 +165,6 @@ export default function Navbar() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => applyTheme("dark")} className="gap-2 cursor-pointer">
                 <Moon className="h-4 w-4 text-blue-400" /> Gelap
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyTheme("orange")} className="gap-2 cursor-pointer">
-                <Flame className="h-4 w-4 text-orange-500" /> Oranye
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -204,7 +192,7 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
-          <Button variant="default" className="w-full mt-2 font-semibold bg-primary text-primary-foreground">
+          <Button variant="default" className="w-full mt-2 font-semibold bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors">
             Pendaftaran Sertifikasi
           </Button>
         </div>
