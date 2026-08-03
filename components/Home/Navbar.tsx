@@ -97,16 +97,12 @@ export default function Navbar() {
           
           {/* Theme Dropdown Toggle */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div
-                role="button"
-                tabIndex={0}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer select-none"
-                aria-label="Pilih Tema"
-              >
-                {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
-                {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
-              </div>
+            <DropdownMenuTrigger
+              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer select-none"
+              aria-label="Pilih Tema"
+            >
+              {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
+              {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className="w-36">
@@ -148,16 +144,12 @@ export default function Navbar() {
         <div className="flex items-center gap-2 md:hidden">
           
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div
-                role="button"
-                tabIndex={0}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer select-none"
-                aria-label="Pilih Tema"
-              >
-                {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
-                {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
-              </div>
+            <DropdownMenuTrigger
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer select-none"
+              aria-label="Pilih Tema"
+            >
+              {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
+              {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => applyTheme("light")} className="gap-2 cursor-pointer">
