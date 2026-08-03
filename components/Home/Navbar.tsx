@@ -143,9 +143,13 @@ export default function Navbar() {
           </DropdownMenu>
 
           {/* CTA Button */}
-          <Button variant="default" size="lg" className="font-semibold shadow-md bg-primary text-primary-foreground hover:opacity-90">
-            Pendaftaran Sertifikasi
-          </Button>
+          <Button 
+  variant="default" 
+  size="lg" 
+  className="font-semibold shadow-md bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
+>
+  Pendaftaran Sertifikasi
+</Button>
         </div>
 
         {/* Mobile Menu Toggle */}

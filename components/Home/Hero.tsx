@@ -57,7 +57,7 @@ export default function Hero() {
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button 
                 size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md group"
+                className="bg-primary text-primary-foreground hover:bg-orange-500 font-semibold shadow-md group"
               >
                 Mulai Sertifikasi
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -65,7 +65,7 @@ export default function Hero() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="border-primary/20 text-primary hover:bg-accent font-semibold"
+                className="border-primary/20 text-primary hover:bg-orange-500 font-semibold"
               >
                 Lihat Skema Uji
               </Button>
@@ -92,31 +92,31 @@ export default function Hero() {
 
           {/* 3. Stat Cards Kanan (Seragam dengan Nuansa Biru & Putih) */}
           <div className="flex flex-col gap-4 lg:col-span-3">
-            {stats.map((stat, index) => {
-              const IconComponent = stat.icon;
-              return (
-                <div
-                  key={index}
-                  className="flex items-start gap-4 rounded-2xl bg-card p-5 border border-border/80 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                    <IconComponent className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground leading-tight">
-                      {stat.value}
-                    </h3>
-                    <p className="text-sm font-semibold text-foreground mt-0.5">
-                      {stat.label}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-snug">
-                      {stat.description}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+  {stats.map((stat, index) => {
+    const IconComponent = stat.icon;
+    return (
+      <div
+        key={index}
+        className="group flex items-start gap-4 rounded-2xl bg-card p-5 border border-border/80 shadow-sm transition-all hover:bg-orange-50 hover:border-orange-500 hover:shadow-md dark:hover:bg-orange-950/20"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary transition-colors group-hover:bg-orange-500 group-hover:text-white">
+          <IconComponent className="h-6 w-6" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-bold text-foreground leading-tight">
+            {stat.value}
+          </h3>
+          <p className="text-sm font-semibold text-foreground mt-0.5">
+            {stat.label}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1 leading-snug">
+            {stat.description}
+          </p>
+        </div>
+      </div>
+    );
+  })}
+</div>
 
         </div>
       </div>
