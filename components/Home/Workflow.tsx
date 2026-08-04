@@ -2,7 +2,6 @@
 
 import React from "react";
 import { UserPlus, FileCheck, Award, ArrowRight, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function Workflow() {
   const steps = [
@@ -32,7 +31,7 @@ export default function Workflow() {
       icon: Award,
       title: "Penerbitan Sertifikat BNSP",
       description:
-        "Jika dinyatakan 'Kompete'n, Anda akan menerima Sertifikat Profesi resmi bertanda tangan BNSP yang berlaku nasional.",
+        "Jika dinyatakan 'Kompeten', Anda akan menerima Sertifikat Profesi resmi bertanda tangan BNSP yang berlaku nasional.",
     },
   ];
 
@@ -53,43 +52,168 @@ export default function Workflow() {
           </p>
         </div>
 
-        {/* Steps Grid dengan Garis Alur */}
+        {/* Steps Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
           {steps.map((item, index) => {
             const IconComp = item.icon;
             return (
               <div
                 key={index}
-                className="group relative flex flex-col justify-between p-6 rounded-2xl bg-card border border-border/80 transition-all duration-300 hover:-translate-y-2 hover:border-orange-500 hover:shadow-xl"
+                className="
+                  group
+                  relative
+                  overflow-hidden
+                  flex
+                  flex-col
+                  justify-between
+                  p-6
+                  rounded-2xl
+                  bg-card
+                  border
+                  border-border/80
+                  cursor-pointer
+                  shadow-none
+
+                  /* Transisi Mantul (Spring Effect) */
+                  transition-all
+                  duration-500
+                  ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                  hover:-translate-y-3
+                  hover:scale-[1.02]
+                  hover:border-orange-500
+                  hover:shadow-xl
+                  hover:shadow-orange-500/10
+
+                  /* Slide-up Background: Bawah Oranye, Atas Dominan Putih */
+                  before:absolute
+                  before:inset-0
+                  before:bg-gradient-to-t
+                  before:from-orange-500/80
+                  before:via-orange-200/50
+                  before:to-white
+                  before:translate-y-full
+                  hover:before:translate-y-0
+                  before:transition-transform
+                  before:duration-600
+                  before:ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                "
               >
-                <div>
-                  {/* Top Header: Badge Step & Icon */}
+                {/* Konten Utama */}
+                <div className="relative z-10">
+                  {/* Top Header */}
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-2xl font-black font-mono text-primary/30 group-hover:text-orange-500 transition-colors duration-300">
+                    {/* Angka / Nomor Step */}
+                    <span 
+                      className="
+                        text-2xl 
+                        font-black 
+                        font-mono 
+                        text-primary/40 
+                        transition-all 
+                        duration-500 
+                        ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                        group-hover:opacity-0 
+                        group-hover:-translate-y-8
+                        pointer-events-none
+                      "
+                    >
                       {item.step}
                     </span>
 
-                    <div className="p-3 rounded-xl bg-accent text-primary transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
+                    {/* Icon Container */}
+                    <div 
+                      className="
+                        p-3 
+                        rounded-xl 
+                        bg-accent 
+                        text-primary 
+                        transition-all 
+                        duration-500 
+                        ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                        group-hover:bg-orange-500 
+                        group-hover:text-white
+                        group-hover:scale-110
+                        group-hover:rotate-6
+                        group-hover:shadow-[0_4px_14px_rgba(249,115,22,0.4)]
+                      "
+                    >
                       <IconComp className="w-6 h-6" />
                     </div>
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="text-base font-bold text-foreground mb-2 transition-colors duration-300 group-hover:text-orange-500">
-                    {item.title}
-                  </h3>
+                  <div className="transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:-translate-y-1">
+                    <h3 
+                      className="
+                        text-base 
+                        font-bold 
+                        text-foreground 
+                        mb-2 
+                        transition-colors 
+                        duration-300 
+                        group-hover:text-slate-900
+                      "
+                    >
+                      {item.title}
+                    </h3>
 
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
+                    <p 
+                      className="
+                        text-xs 
+                        text-muted-foreground 
+                        leading-relaxed 
+                        transition-colors 
+                        duration-300 
+                        group-hover:text-slate-700
+                      "
+                    >
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Footer Indicator */}
-                <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
+                <div 
+                  className="
+                    relative 
+                    z-10
+                    mt-6 
+                    pt-4 
+                    border-t 
+                    border-border/40 
+                    flex 
+                    items-center 
+                    justify-between 
+                    text-xs 
+                    text-muted-foreground 
+                    font-medium 
+                    transition-all 
+                    duration-500 
+                    ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                    group-hover:border-orange-900/20 
+                    group-hover:text-slate-900
+                  "
+                >
                   <span>Tahap {index + 1} dari 4</span>
 
                   {index < steps.length - 1 && (
-                    <ArrowRight className="w-4 h-4 text-orange-500 hidden lg:block opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                    <ArrowRight 
+                      className="
+                        w-4 
+                        h-4 
+                        text-orange-500 
+                        hidden 
+                        lg:block 
+                        opacity-40 
+                        transition-all 
+                        duration-500 
+                        ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                        group-hover:text-orange-900 
+                        group-hover:opacity-100 
+                        group-hover:translate-x-2.5
+                        group-hover:scale-110
+                      " 
+                    />
                   )}
                 </div>
               </div>
