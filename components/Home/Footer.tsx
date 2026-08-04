@@ -66,11 +66,11 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-5">
             <div className="flex items-center gap-3">
               <Image
-                src="/Logo/Logo.png"
+                src="/Logo/Logo2.png"
                 alt="Logo LSP Teknologi Terampil"
-                width={60}
+                width={120}
                 height={60}
-                className="object-contain"
+                className="h-12 md:h-14 w-auto object-contain"
               />
               <div className="flex flex-col">
                 <span className="text-base font-bold leading-tight text-foreground">

@@ -69,9 +69,9 @@ export default function Navbar() {
             <Image 
               src="/Logo/Logo2.png" 
               alt="Logo LSP Teknologi Terampil"
-              width={80}
-              height={80}
-              className="object-contain"
+              width={140}
+              height={70}
+              className="h-14 md:h-16 w-auto object-contain transition-transform duration-200 hover:scale-105"
               priority
             />
           </div>
