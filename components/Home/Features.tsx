@@ -27,7 +27,6 @@ export default function Features() {
       icon: Video,
       title: "Pra-Uji & Workshop",
       description: "Sesi pembekalan langsung dari asesor berpengalaman.",
-      highlight: true,
     },
     {
       icon: TrendingUp,
@@ -60,7 +59,7 @@ export default function Features() {
           </h2>
         </div>
 
-        {/* Grid 6 Card Horizontal */}
+        {/* Grid 6 Card Horizontal Seragam */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
@@ -68,15 +67,15 @@ export default function Features() {
             return (
               <div
                 key={index}
-                className={`
+                className="
                   group
                   relative
                   overflow-hidden
                   rounded-2xl
                   border
-                  ${feature.highlight 
-                    ? 'border-orange-500 bg-orange-50/40 dark:bg-orange-950/20 shadow-lg shadow-orange-500/10' 
-                    : 'border-border/80 bg-card shadow-sm'}
+                  border-border/80
+                  bg-card
+                  shadow-sm
                   p-6
                   text-center
                   transition-all
@@ -87,7 +86,7 @@ export default function Features() {
                   hover:shadow-orange-500/25
                   hover:border-orange-500
                   hover:-translate-y-2.5
-                `}
+                "
               >
                 {/* Ambient Soft Glow Background (efek ciptadrasoft) */}
                 <div
@@ -131,7 +130,7 @@ export default function Features() {
 
                   {/* Icon Box */}
                   <div
-                    className={`
+                    className="
                       mb-5
                       flex
                       h-14
@@ -139,9 +138,9 @@ export default function Features() {
                       items-center
                       justify-center
                       rounded-2xl
-                      ${feature.highlight 
-                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30' 
-                        : 'bg-blue-50 text-primary dark:bg-accent'}
+                      bg-blue-50
+                      text-primary
+                      dark:bg-accent
                       transition-all
                       duration-300
                       ease-out
@@ -152,24 +151,24 @@ export default function Features() {
                       group-hover:scale-110
                       group-hover:shadow-lg
                       group-hover:shadow-orange-500/35
-                    `}
+                    "
                   >
                     <IconComponent className="h-7 w-7 transition-transform duration-300 group-hover:scale-105" />
                   </div>
 
                   {/* Title */}
                   <h3
-                    className={`
+                    className="
                       text-base
                       font-bold
                       leading-snug
                       mb-2
+                      text-foreground
                       transition-colors
                       duration-300
-                      ${feature.highlight ? 'text-orange-600 dark:text-orange-400' : 'text-foreground'}
                       group-hover:text-orange-600
                       dark:group-hover:text-orange-400
-                    `}
+                    "
                   >
                     {feature.title}
                   </h3>
@@ -190,9 +189,10 @@ export default function Features() {
 
                   {/* Garis Aksen Bawah (Progress Bar Glow) */}
                   <div
-                    className={`
+                    className="
                       mt-5
                       h-1
+                      w-0
                       rounded-full
                       bg-gradient-to-r
                       from-orange-500
@@ -200,8 +200,8 @@ export default function Features() {
                       transition-all
                       duration-300
                       ease-out
-                      ${feature.highlight ? 'w-16' : 'w-0 group-hover:w-16'}
-                    `}
+                      group-hover:w-16
+                    "
                   />
                 </div>
               </div>
