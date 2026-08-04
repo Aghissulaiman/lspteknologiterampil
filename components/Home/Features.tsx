@@ -53,7 +53,7 @@ export default function Features() {
         <div className="text-center mb-12">
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             Semua yang Anda Butuhkan untuk{" "}
-            <span className="text-blue-600 transition-colors duration-300 hover:text-orange-500">
+            <span className="text-primary transition-colors duration-300 hover:text-orange-500">
               Dapatkan Sertifikasi
             </span>
           </h2>
@@ -174,4 +174,4 @@ export default function Features() {
       </div>
     </section>
   );
-}
+} 
