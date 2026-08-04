@@ -58,6 +58,25 @@ export default function Navbar() {
   };
 
   // Tautan disesuaikan persis dengan komponen di Home
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href && href.startsWith("#")) {
+      e.preventDefault();
+      const targetId = href.replace("#", "");
+      const element = document.getElementById(targetId);
+      if (element) {
+        const navHeight = 80;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - navHeight;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
+    }
+    setIsOpen(false);
+  };
+
   const navLinks = [
     { name: "Beranda", href: "#hero" },
     { name: "Tentang Kami", href: "#about" },
@@ -72,7 +91,7 @@ export default function Navbar() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo Section */}
-        <a href="#hero" className="flex items-center gap-3 cursor-pointer">
+        <a href="#hero" onClick={(e) => handleNavClick(e, "#hero")} className="flex items-center gap-3 cursor-pointer">
           <div>
             <Image 
               src="/Logo/Logo2.png" 
@@ -98,6 +117,7 @@ export default function Navbar() {
             <a
               key={link.name}
               href={link.href}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="text-sm font-medium text-muted-foreground transition-all duration-300 hover:text-orange-500 hover:-translate-y-0.5"
             >
               {link.name}
