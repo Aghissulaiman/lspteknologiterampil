@@ -47,7 +47,7 @@ export default function Schemes() {
       title: "Service Android",
       code: "TKS-004",
       level: "Interface - Advance",
-      prerequisite: "Tidak ada",
+      prerequisite: "Terbuka untuk umum",
       tags: ["Flashing", "IC BGA", "eMMC"],
     },
     {
@@ -56,7 +56,7 @@ export default function Schemes() {
       title: "Digital Marketing",
       code: "DM-001",
       level: "Beginner - Intermediate",
-      prerequisite: "Tidak ada",
+      prerequisite: "Mampu mengoperasikan komputer dan internet dasar.",
       tags: ["SEO", "Meta Ads", "Content"],
     },
   ];
@@ -73,10 +73,10 @@ export default function Schemes() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-3">
-              <Sparkles className="w-3.5 h-3.5" /> Program Sertifikasi Masa Depan
+              <Sparkles className="w-3.5 h-3.5" /> Program Pelatihan Profesional
             </div>
             <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-              Skema Uji Kompetensi Web, AI & Marketing
+              Tingkatkan Kompetensi Bersama Program Pelatihan Kami
             </h2>
           </div>
           <p className="text-sm text-muted-foreground max-w-md leading-relaxed">

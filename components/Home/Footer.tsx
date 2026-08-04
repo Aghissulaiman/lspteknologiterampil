@@ -111,18 +111,18 @@ export default function Footer() {
           </div>
 
           {/* Col 2: Quick Links */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 ">
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
               Jelajahi
             </h4>
-            <ul className="space-y-2.5 text-xs">
+            <ul className="space-y-2.5 text-xs hover:text-orange-500">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="group inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+                    className="group inline-flex items-center text-muted-foreground hover:text-orange-500 transition-colors"
                   >
-                    <ChevronRight className="w-3 h-3 mr-1 text-primary/40 group-hover:text-primary transition-colors" />
+                    <ChevronRight className="w-3 h-3 mr-1 text-orange/40 hover:text-orange-500 transition-colors" />
                     {link.name}
                   </a>
                 </li>
@@ -140,9 +140,9 @@ export default function Footer() {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="group inline-flex items-center text-muted-foreground hover:text-primary transition-colors"
+                    className="group inline-flex items-center text-muted-foreground hover:text-orange-500 transition-colors"
                   >
-                    <ChevronRight className="w-3 h-3 mr-1 text-primary/40 group-hover:text-primary transition-colors" />
+                    <ChevronRight className="w-3 h-3 mr-1 text-orange/40 group-hover:text-orange-500 transition-colors" />
                     {link.name}
                   </a>
                 </li>
@@ -204,7 +204,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-4 text-[11px]">
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse"></span>
               Sistem Pendaftaran Online Aktif
             </span>
             <span className="text-border">|</span>

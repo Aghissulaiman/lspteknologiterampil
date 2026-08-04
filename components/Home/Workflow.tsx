@@ -60,23 +60,25 @@ export default function Workflow() {
             return (
               <div
                 key={index}
-                className="group relative flex flex-col justify-between p-6 rounded-2xl bg-card border border-border/80 transition-all duration-300 hover:border-primary/60 hover:shadow-lg"
+                className="group relative flex flex-col justify-between p-6 rounded-2xl bg-card border border-border/80 transition-all duration-300 hover:-translate-y-2 hover:border-orange-500 hover:shadow-xl"
               >
                 <div>
                   {/* Top Header: Badge Step & Icon */}
                   <div className="flex items-center justify-between mb-6">
-                    <span className="text-2xl font-black font-mono text-primary/30 group-hover:text-primary transition-colors">
+                    <span className="text-2xl font-black font-mono text-primary/30 group-hover:text-orange-500 transition-colors duration-300">
                       {item.step}
                     </span>
-                    <div className="p-3 rounded-xl bg-accent text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+
+                    <div className="p-3 rounded-xl bg-accent text-primary transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
                       <IconComp className="w-6 h-6" />
                     </div>
                   </div>
 
                   {/* Title & Description */}
-                  <h3 className="text-base font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                  <h3 className="text-base font-bold text-foreground mb-2 transition-colors duration-300 group-hover:text-orange-500">
                     {item.title}
                   </h3>
+
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {item.description}
                   </p>
@@ -85,20 +87,14 @@ export default function Workflow() {
                 {/* Footer Indicator */}
                 <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
                   <span>Tahap {index + 1} dari 4</span>
+
                   {index < steps.length - 1 && (
-                    <ArrowRight className="w-4 h-4 text-primary hidden lg:block opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    <ArrowRight className="w-4 h-4 text-orange-500 hidden lg:block opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                   )}
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Call To Action Bawah */}
-        <div className="mt-12 text-center">
-          <Button size="lg" className="bg-primary text-primary-foreground font-semibold shadow-md cursor-pointer">
-            Mulai Pendaftaran Sekarang
-          </Button>
         </div>
 
       </div>
