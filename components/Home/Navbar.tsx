@@ -61,7 +61,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md transition-colors duration-200">
-      <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo Section */}
         <div className="flex items-center gap-3 cursor-pointer">
@@ -69,16 +69,16 @@ export default function Navbar() {
             <Image 
               src="/Logo/Logo2.png" 
               alt="Logo LSP Teknologi Terampil"
-              width={200}
-              height={100}
-              className="h-20 md:h-24 w-auto object-contain scale-125 transition-transform duration-200 hover:scale-135"
+              width={80}
+              height={80}
+              className="object-contain"
               priority
             />
           </div>
           
           {/* Teks Brand */}
           <div className="flex flex-col">
-            <span className="text-xl font-bold leading-tight tracking-tight text-foreground">
+            <span className="text-lg font-bold leading-tight tracking-tight text-foreground">
               LSP <span className="text-primary transition-colors duration-200">Teknologi Terampil</span>
             </span>
           </div>
