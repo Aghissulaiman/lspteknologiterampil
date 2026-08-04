@@ -42,10 +42,15 @@ export default function Hero() {
             </div>
 
             {/* Headline Teks (Full Biru & Dark Navy) */}
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground transition-colors duration-300 hover:text-orange-500 sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]">
               Tingkatkan Karir. <br />
-              <span className="text-primary">Terampil, Diakui,</span> <br />
-              <span className="text-primary">Tersertifikasi.</span>
+              <span className="text-primary hover:text-orange-500">
+                Terampil, Diakui,
+              </span>{" "}
+              <br />
+              <span className="text-primary hover:text-orange-500">
+                Tersertifikasi.
+              </span>
             </h1>
 
             {/* Deskripsi */}
@@ -65,7 +70,7 @@ export default function Hero() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="border-primary/20 text-primary hover:bg-orange-500 font-semibold"
+                className="border-primary/20 text-primary hover:bg-orange-300 font-semibold"
               >
                 Lihat Skema Uji
               </Button>

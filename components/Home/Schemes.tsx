@@ -102,7 +102,7 @@ export default function Schemes() {
         </div>
 
         {/* Grid List Skema */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1  md:grid-cols-2 gap-4">
           {filteredSchemes.map((scheme) => (
             <div
               key={scheme.id}
@@ -118,12 +118,12 @@ export default function Schemes() {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                <h3 className="text-lg font-bold text-foreground group-hover:text-orange-500 transition-colors mb-2">
                   {scheme.title}
                 </h3>
 
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-4">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary group-hover:text-orange-500 transition-colors shrink-0" />
                   Prasyarat: {scheme.prerequisite}
                 </p>
               </div>

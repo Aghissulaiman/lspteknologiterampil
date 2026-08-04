@@ -68,7 +68,7 @@ export default function About() {
 
               {/* Decorative Floating Badge */}
               <div className="absolute -bottom-5 -right-3 sm:right-4 bg-background border border-border rounded-2xl p-4 shadow-xl flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="w-3 h-3 rounded-full bg-orange-300 animate-pulse" />
                 <span className="text-xs font-bold text-foreground">Terlisensi BNSP RI</span>
               </div>
 
@@ -104,10 +104,10 @@ export default function About() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-4">
-              <Button size="lg" className="bg-primary text-primary-foreground font-semibold shadow-md cursor-pointer">
+              <Button size="lg" className="bg-primary hover:bg-orange-500 text-primary-foreground font-semibold shadow-md cursor-pointer">
                 Profil Lengkap LSP
               </Button>
-              <Button variant="outline" size="lg" className="border-border/80 font-semibold cursor-pointer">
+              <Button variant="outline" size="lg" className="border-border/80 font-semibold hover:bg-orange-300 cursor-pointer">
                 Struktur Organisasi
               </Button>
             </div>
