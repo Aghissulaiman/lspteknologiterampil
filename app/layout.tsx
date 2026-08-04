@@ -14,12 +14,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lspteknologiterampil.id"),
   title: "LSP Teknologi Terampil",
   description: "Lembaga Sertifikasi Profesi Teknologi Terampil",
   icons: {
-    icon: "/icon.png",
+    icon: [
+      { url: "/icon.png", type: "image/png" },
+      { url: "/favicon.ico" }
+    ],
     shortcut: "/icon.png",
-    apple: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: "LSP Teknologi Terampil",
+    description: "Lembaga Sertifikasi Profesi Teknologi Terampil",
+    url: "https://lspteknologiterampil.id",
+    siteName: "LSP Teknologi Terampil",
+    images: [
+      {
+        url: "/icon.png",
+        width: 512,
+        height: 512,
+        alt: "Logo LSP Teknologi Terampil",
+      },
+    ],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "LSP Teknologi Terampil",
+    description: "Lembaga Sertifikasi Profesi Teknologi Terampil",
+    images: ["/icon.png"],
   },
 };
 
