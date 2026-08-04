@@ -165,11 +165,14 @@
 }
 
 @layer base {
-  * {
+  *, ::before, ::after {
     @apply border-border outline-ring/50;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 350ms;
   }
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground;
   }
   html {
     @apply font-sans;
