@@ -66,7 +66,7 @@ export default function Schemes() {
     : schemes.filter(s => s.category === activeTab);
 
   return (
-    <section className="w-full bg-muted/40 py-20 transition-colors duration-200">
+    <section id="schemes" className="w-full bg-muted/40 py-20 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Header Samping */}

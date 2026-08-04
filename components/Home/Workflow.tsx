@@ -37,7 +37,7 @@ export default function Workflow() {
   ];
 
   return (
-    <section className="w-full bg-background py-20 transition-colors duration-200">
+    <section id="workflow" className="w-full bg-background py-20 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Header Seksi */}

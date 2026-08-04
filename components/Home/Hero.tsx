@@ -28,15 +28,18 @@ export default function Hero() {
   ];
 
   return (
-    // min-h-[calc(100vh-5rem)] membuat komponen ini pas 1 layar (dikurangi tinggi navbar 80px / 5rem)
-    <section className="relative flex min-h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background py-8 lg:py-0">
+    // Penambahan id="hero" agar dapat di-scroll dari Navbar
+    <section 
+      id="hero" 
+      className="relative flex min-h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background py-8 lg:py-0"
+    >
       
       {/* ========================================================= */}
-      {/* TAMBAHAN: BACKGROUND IMAGE & OVERLAY (TIDAK MERUBAH TAMPILAN LAIN) */}
+      {/* BACKGROUND IMAGE & OVERLAY */}
       {/* ========================================================= */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/Hero/Foto1.png" // Ganti dengan path gambar background kamu
+          src="/Hero/Foto1.png"
           alt="Hero Background"
           fill
           priority
@@ -53,13 +56,13 @@ export default function Hero() {
           
           {/* 1. Teks Kiri */}
           <div className="z-10 lg:col-span-5">
-            {/* Top Badge (Biru + Accent Soft Blue) */}
+            {/* Top Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-primary">
               <ShieldCheck className="h-4 w-4 text-primary" />
               <span>LEMBAGA SERTIFIKASI PROFESI RESMI</span>
             </div>
 
-            {/* Headline Teks (Full Biru & Dark Navy) */}
+            {/* Headline Teks */}
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground transition-colors duration-300 hover:text-orange-500 sm:text-4xl md:text-5xl lg:text-5xl leading-[1.15]">
               Tingkatkan Karir. <br />
               <span className="text-primary hover:text-orange-500">
@@ -76,7 +79,7 @@ export default function Hero() {
               Program pelatihan dirancang untuk meningkatkan kompetensi peserta melalui pembelajaran berbasis teori dan praktik sesuai kebutuhan industri. Pilih program yang sesuai dengan minat dan karier Anda.
             </p>
 
-            {/* Tombol Akses (Semua Biru - Tanpa Warna Lain) */}
+            {/* Tombol Akses */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Button 
                 size="lg" 
@@ -99,21 +102,9 @@ export default function Hero() {
           <div className="relative flex items-center justify-center lg:col-span-4 min-h-[380px] sm:min-h-[460px]">
             {/* Lingkaran Dekoratif Soft Blue di Belakang Foto */}
             <div className="absolute top-1/2 left-1/2 -z-10 h-[280px] w-[280px] sm:h-[340px] sm:w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-2xl" />
-            
-            {/* Pembungkus Foto */}
-            {/* <div className="relative h-[380px] w-full max-w-[320px] sm:h-[460px] sm:max-w-[380px]">
-              <Image
-                src="/Foto/hero-person.png"
-                alt="Profesional LSP Teknologi Terampil"
-                fill
-                sizes="(max-width: 768px) 100vw, 380px"
-                className="object-contain object-bottom drop-shadow-xl"
-                priority
-              />
-            </div> */}
           </div>
 
-          {/* 3. Stat Cards Kanan (Seragam dengan Nuansa Biru & Putih) */}
+          {/* 3. Stat Cards Kanan */}
           <div className="flex flex-col gap-4 lg:col-span-3">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;

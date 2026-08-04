@@ -3,7 +3,6 @@
 import React from "react";
 import { 
   BookOpen, 
-  FileCheck, 
   Video, 
   TrendingUp, 
   Users, 
@@ -47,7 +46,7 @@ export default function Features() {
   ];
 
   return (
-    <section className="w-full bg-background py-16 md:py-20">
+    <section id="features" className="w-full bg-background py-16 md:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Judul Utama */}

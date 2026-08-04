@@ -20,7 +20,7 @@ export default function About() {
   ];
 
   return (
-    <section className="w-full bg-background py-20 transition-colors duration-200">
+    <section id="about" className="w-full bg-background py-20 transition-colors duration-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">

@@ -1,4 +1,5 @@
 import About from "@/components/Home/About";
+import Contact from "@/components/Home/Contact";
 import Features from "@/components/Home/Features";
 import Footer from "@/components/Home/Footer";
 import Hero from "@/components/Home/Hero";
@@ -15,6 +16,7 @@ export default function Home() {
       <Features/>
       <Schemes/>
       <Workflow/>
+      <Contact/>
       <Footer/>
     </>
   )

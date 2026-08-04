@@ -5,12 +5,6 @@ import Image from "next/image";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 // Helper/Hook untuk mendeteksi status mounted secara aman tanpa re-render berantai
 const emptySubscribe = () => () => {};
@@ -63,22 +57,22 @@ export default function Navbar() {
     applyTheme(nextTheme);
   };
 
+  // Tautan disesuaikan persis dengan komponen di Home
   const navLinks = [
-    { name: "Beranda", href: "#" },
-    { name: "Skema Sertifikasi", href: "#" },
-    { name: "Jadwal Uji", href: "#" },
-    { name: "Tempat Uji (TUK)", href: "#" },
-    { name: "Profil LSP", href: "#" },
-    { name: "Berita", href: "#" },
-    { name: "Kontak", href: "#" },
+    { name: "Beranda", href: "#hero" },
+    { name: "Tentang Kami", href: "#about" },
+    { name: "Keunggulan", href: "#features" },
+    { name: "Skema Sertifikasi", href: "#schemes" },
+    { name: "Alur Pendaftaran", href: "#workflow" },
+    { name: "Kontak", href: "#kontak" },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md transition-colors duration-200">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md transition-colors duration-200">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo Section */}
-        <div className="flex items-center gap-3 cursor-pointer">
+        <a href="#hero" className="flex items-center gap-3 cursor-pointer">
           <div>
             <Image 
               src="/Logo/Logo2.png" 
@@ -96,7 +90,7 @@ export default function Navbar() {
               LSP <span className="text-primary transition-colors duration-200">Teknologi Terampil</span>
             </span>
           </div>
-        </div>
+        </a>
 
         {/* Desktop Links */}
         <div className="hidden items-center space-x-6 lg:space-x-8 md:flex">
@@ -114,7 +108,7 @@ export default function Navbar() {
         {/* Action Buttons (Theme Switcher + CTA) */}
         <div className="hidden items-center gap-3 md:flex">
           
-          {/* Theme Dropdown Toggle */}
+          {/* Theme Toggle Button */}
           <Button
             variant="outline"
             size="icon"
@@ -129,14 +123,13 @@ export default function Navbar() {
             )}
           </Button>
 
-          {/* CTA Button */}
-          <Button 
-            variant="default" 
-            size="lg" 
-            className="font-semibold shadow-md bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
+          {/* CTA Button Tanpa asChild */}
+          <a
+            href="#schemes"
+            className="inline-flex h-10 items-center justify-center rounded-md px-6 text-sm font-semibold shadow-md bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
           >
             Pendaftaran Sertifikasi
-          </Button>
+          </a>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -174,14 +167,19 @@ export default function Navbar() {
             <a
               key={link.name}
               href={link.href}
+              onClick={() => setIsOpen(false)}
               className="block py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
               {link.name}
             </a>
           ))}
-          <Button variant="default" className="w-full mt-2 font-semibold bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors">
+          <a
+            href="#schemes"
+            onClick={() => setIsOpen(false)}
+            className="flex w-full h-10 items-center justify-center rounded-md mt-2 text-sm font-semibold bg-primary text-primary-foreground hover:bg-orange-500 hover:text-white transition-colors"
+          >
             Pendaftaran Sertifikasi
-          </Button>
+          </a>
         </div>
       )}
     </nav>
