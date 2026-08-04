@@ -14,13 +14,15 @@ export default function Features() {
   const features = [
     {
       icon: BookOpen,
-      title: "Materi Kompetensi",
-      description: "Panduan dan standar kompetensi berbasis SKKNI industri.",
-    },
+      title: "Materi Terstruktur",
+      description:
+        "Modul pembelajaran disusun secara sistematis mulai dari dasar hingga tingkat lanjutan.",
+  },
     {
-      icon: FileCheck,
-      title: "Dokumen Portofolio",
-      description: "Format pendaftaran & persyaratannya tertata rapi.",
+      icon: Users,
+      title: "Instruktur Berpengalaman",
+      description:
+        "Dibimbing oleh praktisi profesional yang memiliki pengalaman di bidangnya.",
     },
     {
       icon: Video,

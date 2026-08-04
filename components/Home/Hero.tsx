@@ -50,7 +50,7 @@ export default function Hero() {
 
             {/* Deskripsi */}
             <p className="mt-5 text-base text-muted-foreground sm:text-lg leading-relaxed">
-              Uji kompetensi dan dapatkan sertifikasi profesi resmi untuk membuktikan keahlian teknologi Anda sesuai standar industri nasional (BNSP).
+              Program pelatihan dirancang untuk meningkatkan kompetensi peserta melalui pembelajaran berbasis teori dan praktik sesuai kebutuhan industri. Pilih program yang sesuai dengan minat dan karier Anda.
             </p>
 
             {/* Tombol Akses (Semua Biru - Tanpa Warna Lain) */}

@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LSP Teknologi Terampil",
   description: "Lembaga Sertifikasi Profesi Teknologi Terampil",
+  icons: {
+    icon: "/Logo/Logo2.png", // ganti sesuai nama file logo
+  },
 };
 
 export default function RootLayout({

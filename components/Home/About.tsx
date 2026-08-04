@@ -39,12 +39,12 @@ export default function About() {
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-foreground">Visi Utama</h4>
-                    <p className="text-xs text-muted-foreground">Standardisasi Talenta Digital</p>
+                    
                   </div>
                 </div>
 
                 <p className="text-sm text-muted-foreground leading-relaxed italic mb-8">
-                  &ldquo;Menjadi Lembaga Sertifikasi Profesi terdepan dalam mencetak tenaga kerja unggul di bidang Web, AI, dan Digital Marketing yang diakui secara nasional maupun internasional.&rdquo;
+                  &ldquo;Menjadi lembaga pelatihan dan pengembangan kompetensi teknologi yang profesional, terpercaya, dan inovatif dalam mencetak sumber daya manusia yang kompeten, berdaya saing, serta siap menghadapi kebutuhan industri di era digital.&rdquo;
                 </p>
 
                 {/* Mini Stats Grid Inside Graphic */}
