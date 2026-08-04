@@ -30,7 +30,25 @@ export default function Hero() {
   return (
     // min-h-[calc(100vh-5rem)] membuat komponen ini pas 1 layar (dikurangi tinggi navbar 80px / 5rem)
     <section className="relative flex min-h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background py-8 lg:py-0">
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      
+      {/* ========================================================= */}
+      {/* TAMBAHAN: BACKGROUND IMAGE & OVERLAY (TIDAK MERUBAH TAMPILAN LAIN) */}
+      {/* ========================================================= */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Hero/Foto1.png" // Ganti dengan path gambar background kamu
+          alt="Hero Background"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Overlay agar konten di atasnya tetap terlihat rapi */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+      </div>
+      {/* ========================================================= */}
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-8">
           
           {/* 1. Teks Kiri */}
@@ -78,12 +96,12 @@ export default function Hero() {
           </div>
 
           {/* 2. Gambar Tengah (Foto Profesional) */}
-<div className="relative flex items-center justify-center lg:col-span-4 min-h-[380px] sm:min-h-[460px]">
+          <div className="relative flex items-center justify-center lg:col-span-4 min-h-[380px] sm:min-h-[460px]">
             {/* Lingkaran Dekoratif Soft Blue di Belakang Foto */}
             <div className="absolute top-1/2 left-1/2 -z-10 h-[280px] w-[280px] sm:h-[340px] sm:w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-2xl" />
             
             {/* Pembungkus Foto */}
-            <div className="relative h-[380px] w-full max-w-[320px] sm:h-[460px] sm:max-w-[380px]">
+            {/* <div className="relative h-[380px] w-full max-w-[320px] sm:h-[460px] sm:max-w-[380px]">
               <Image
                 src="/Foto/hero-person.png"
                 alt="Profesional LSP Teknologi Terampil"
@@ -92,36 +110,36 @@ export default function Hero() {
                 className="object-contain object-bottom drop-shadow-xl"
                 priority
               />
-            </div>
+            </div> */}
           </div>
 
           {/* 3. Stat Cards Kanan (Seragam dengan Nuansa Biru & Putih) */}
           <div className="flex flex-col gap-4 lg:col-span-3">
-  {stats.map((stat, index) => {
-    const IconComponent = stat.icon;
-    return (
-      <div
-        key={index}
-        className="group flex items-start gap-4 rounded-2xl bg-card p-5 border border-border/80 shadow-sm transition-all hover:bg-orange-50 hover:border-orange-500 hover:shadow-md dark:hover:bg-orange-950/20"
-      >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary transition-colors group-hover:bg-orange-500 group-hover:text-white">
-          <IconComponent className="h-6 w-6" />
-        </div>
-        <div>
-          <h3 className="text-2xl font-bold text-foreground leading-tight">
-            {stat.value}
-          </h3>
-          <p className="text-sm font-semibold text-foreground mt-0.5">
-            {stat.label}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1 leading-snug">
-            {stat.description}
-          </p>
-        </div>
-      </div>
-    );
-  })}
-</div>
+            {stats.map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div
+                  key={index}
+                  className="group flex items-start gap-4 rounded-2xl bg-card p-5 border border-border/80 shadow-sm transition-all hover:bg-orange-50 hover:border-orange-500 hover:shadow-md dark:hover:bg-orange-950/20"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary transition-colors group-hover:bg-orange-500 group-hover:text-white">
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-foreground leading-tight">
+                      {stat.value}
+                    </h3>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">
+                      {stat.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                      {stat.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
         </div>
       </div>
