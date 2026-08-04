@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Image from "next/image";
-import { Menu, X, Sun, Moon, Check } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,9 +44,14 @@ export default function Navbar() {
     syncThemeToRoot(currentTheme as "light" | "dark");
   }, [mounted, currentTheme]);
 
-  const applyTheme = (nextTheme: "light" | "dark") => {
+    const applyTheme = (nextTheme: "light" | "dark") => {
     setTheme(nextTheme);
     syncThemeToRoot(nextTheme);
+  };
+
+  const toggleTheme = () => {
+    const nextTheme = isDarkTheme ? "light" : "dark";
+    applyTheme(nextTheme);
   };
 
   const navLinks = [
@@ -101,39 +106,19 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           
           {/* Theme Dropdown Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer select-none"
-              aria-label="Pilih Tema"
-            >
-              {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
-              {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-36">
-              <DropdownMenuItem
-                onClick={() => applyTheme("light")}
-                className="flex items-center justify-between cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Sun className="h-4 w-4 text-amber-500" />
-                  <span>Terang</span>
-                </div>
-                {mounted && !isDarkTheme && <Check className="h-4 w-4" />}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => applyTheme("dark")}
-                className="flex items-center justify-between cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <Moon className="h-4 w-4 text-blue-400" />
-                  <span>Gelap</span>
-                </div>
-                {mounted && isDarkTheme && <Check className="h-4 w-4" />}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-10 w-10 cursor-pointer rounded-md border border-border bg-background transition-all hover:bg-accent hover:text-accent-foreground select-none"
+            aria-label="Ganti Tema"
+          >
+            {mounted && isDarkTheme ? (
+              <Moon className="h-4 w-4 text-blue-400 transition-transform duration-200 hover:rotate-12" />
+            ) : (
+              <Sun className="h-4 w-4 text-amber-500 transition-transform duration-200 hover:rotate-45" />
+            )}
+          </Button>
 
           {/* CTA Button */}
           <Button 
@@ -148,23 +133,19 @@ export default function Navbar() {
         {/* Mobile Menu Toggle */}
         <div className="flex items-center gap-2 md:hidden">
           
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer select-none"
-              aria-label="Pilih Tema"
-            >
-              {mounted && isDarkTheme && <Moon className="h-4 w-4 text-blue-400" />}
-              {mounted && !isDarkTheme && <Sun className="h-4 w-4 text-amber-500" />}
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => applyTheme("light")} className="gap-2 cursor-pointer">
-                <Sun className="h-4 w-4 text-amber-500" /> Terang
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => applyTheme("dark")} className="gap-2 cursor-pointer">
-                <Moon className="h-4 w-4 text-blue-400" /> Gelap
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="h-9 w-9 cursor-pointer rounded-md border border-border bg-background transition-all hover:bg-accent hover:text-accent-foreground select-none"
+            aria-label="Ganti Tema"
+          >
+            {mounted && isDarkTheme ? (
+              <Moon className="h-4 w-4 text-blue-400" />
+            ) : (
+              <Sun className="h-4 w-4 text-amber-500" />
+            )}
+          </Button>
 
           <Button
             variant="ghost"
