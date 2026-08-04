@@ -102,51 +102,182 @@ export default function Schemes() {
         </div>
 
         {/* Grid List Skema */}
-        <div className="grid grid-cols-1  md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredSchemes.map((scheme) => (
             <div
               key={scheme.id}
-              className="group relative flex flex-col justify-between p-6 rounded-xl bg-background border border-border/80 transition-all duration-200 hover:border-primary hover:shadow-md"
+              className="
+        group
+        relative
+        overflow-hidden
+        flex
+        flex-col
+        justify-between
+        p-6
+        rounded-xl
+        bg-background
+        border
+        border-border/80
+        cursor-pointer
+        transition-all
+        duration-500
+        ease-out
+        hover:-translate-y-2
+        hover:scale-[1.02]
+        hover:border-orange-500
+        hover:shadow-[0_20px_50px_rgba(249,115,22,0.18)]
+      "
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-[11px] font-mono font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded">
-                    {scheme.code}
-                  </span>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {scheme.level}
-                  </span>
-                </div>
+              {/* Background Glow */}
+              <div
+                className="
+          absolute
+          inset-0
+          opacity-0
+          bg-gradient-to-br
+          from-orange-100/50
+          via-transparent
+          to-transparent
+          transition-opacity
+          duration-500
+          group-hover:opacity-100
+        "
+              />
 
-                <h3 className="text-lg font-bold text-foreground group-hover:text-orange-500 transition-colors mb-2">
-                  {scheme.title}
-                </h3>
-
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mb-4">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary group-hover:text-orange-500 transition-colors shrink-0" />
-                  Prasyarat: {scheme.prerequisite}
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-border/40 flex items-center justify-between gap-2">
-                <div className="flex flex-wrap gap-1.5">
-                  {scheme.tags.map((tag, i) => (
-                    <span 
-                      key={i} 
-                      className="text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border/40"
+              <div className="relative z-10">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span
+                      className="
+                text-[11px]
+                font-mono
+                font-bold
+                px-2.5
+                py-0.5
+                rounded
+                text-primary
+                bg-primary/10
+                transition-all
+                duration-500
+                group-hover:bg-orange-500
+                group-hover:text-white
+              "
                     >
-                      {tag}
+                      {scheme.code}
                     </span>
-                  ))}
+
+                    <span
+                      className="
+                text-xs
+                font-medium
+                text-muted-foreground
+                transition-all
+                duration-500
+                group-hover:text-orange-500
+              "
+                    >
+                      {scheme.level}
+                    </span>
+                  </div>
+
+                  <h3
+                    className="
+              text-lg
+              font-bold
+              text-foreground
+              mb-2
+              transition-all
+              duration-500
+              group-hover:text-orange-500
+              group-hover:translate-x-1
+            "
+                  >
+                    {scheme.title}
+                  </h3>
+
+                  <p
+                    className="
+              text-xs
+              text-muted-foreground
+              flex
+              items-center
+              gap-1.5
+              mb-4
+              transition-all
+              duration-500
+              group-hover:text-orange-500
+            "
+                  >
+                    <CheckCircle2
+                      className="
+                w-3.5
+                h-3.5
+                text-primary
+                shrink-0
+                transition-all
+                duration-500
+                group-hover:text-orange-500
+                group-hover:scale-125
+                group-hover:rotate-12
+              "
+                    />
+
+                    Prasyarat: {scheme.prerequisite}
+                  </p>
                 </div>
 
-                <button 
-                  type="button" 
-                  aria-label={`Detail skema ${scheme.title}`}
-                  className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0 cursor-pointer"
-                >
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
+                <div className="pt-4 mt-4 border-t border-border/40 flex items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-1.5">
+                    {scheme.tags.map((tag, i) => (
+                      <span
+                        key={i}
+                        className="
+                  text-[10px]
+                  font-medium
+                  bg-muted
+                  text-muted-foreground
+                  px-2
+                  py-0.5
+                  rounded
+                  border
+                  border-border/40
+                  transition-all
+                  duration-500
+                  group-hover:bg-orange-100
+                  group-hover:text-orange-700
+                  group-hover:border-orange-300
+                  hover:scale-110
+                "
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label={`Detail skema ${scheme.title}`}
+                    className="
+              h-8
+              w-8
+              rounded-lg
+              bg-muted
+              flex
+              items-center
+              justify-center
+              text-foreground
+              transition-all
+              duration-500
+              cursor-pointer
+              group-hover:bg-orange-500
+              group-hover:text-white
+              group-hover:rotate-45
+              group-hover:scale-110
+            "
+                  >
+                    <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

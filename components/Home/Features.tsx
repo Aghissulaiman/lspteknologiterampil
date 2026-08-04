@@ -60,32 +60,155 @@ export default function Features() {
         </div>
 
         {/* Grid 6 Card Horizontal */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-          {features.map((feature, index) => {
-            const IconComponent = feature.icon;
-            return (
-              <div
-                key={index}
-                className="group flex flex-col items-center text-center p-6 rounded-2xl bg-card border border-border/80 shadow-sm transition-all duration-300 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 hover:-translate-y-1"
-              >
-                {/* Icon Box: Default Biru Soft -> Hover Oranye */}
-                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white">
-                  <IconComponent className="h-7 w-7" />
-                </div>
+       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+  {features.map((feature, index) => {
+    const IconComponent = feature.icon;
 
-                {/* Card Title: Default Hitam -> Hover Oranye */}
-                <h3 className="text-base font-bold text-foreground leading-snug mb-2 transition-colors duration-300 group-hover:text-orange-600">
-                  {feature.title}
-                </h3>
+    return (
+      <div
+        key={index}
+        className="
+          group
+          relative
+          overflow-hidden
+          rounded-2xl
+          border
+          border-border
+          bg-card
+          p-6
+          text-center
+          transition-all
+          duration-500
+          cursor-pointer
 
-                {/* Card Description */}
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            );
-          })}
+          hover:border-orange-500
+          hover:-translate-y-2
+        "
+      >
+        {/* Glow Background */}
+        <div
+          className="
+            absolute
+            inset-0
+            opacity-0
+            transition-all
+            duration-500
+            group-hover:opacity-100
+            pointer-events-none
+          "
+        >
+          {/* Glow bawah */}
+          <div
+            className="
+              absolute
+              -bottom-24
+              left-1/2
+              h-64
+              w-64
+              -translate-x-1/2
+              rounded-full
+              bg-orange-400/30
+              blur-3xl
+            "
+          />
+
+          {/* Glow kanan atas */}
+          <div
+            className="
+              absolute
+              -top-10
+              right-0
+              h-40
+              w-40
+              rounded-full
+              bg-orange-300/20
+              blur-3xl
+            "
+          />
         </div>
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center">
+
+          {/* Icon */}
+          <div
+            className="
+              mb-5
+              flex
+              h-14
+              w-14
+              items-center
+              justify-center
+              rounded-2xl
+              bg-blue-50
+              text-blue-600
+
+              transition-all
+              duration-500
+
+              group-hover:bg-orange-500
+              group-hover:text-white
+              group-hover:scale-110
+              group-hover:rotate-6
+            "
+          >
+            <IconComponent className="h-7 w-7 transition-all duration-500" />
+          </div>
+
+          {/* Title */}
+          <h3
+            className="
+              text-base
+              font-bold
+              text-foreground
+              leading-snug
+              mb-2
+
+              transition-all
+              duration-500
+
+              group-hover:text-orange-600
+            "
+          >
+            {feature.title}
+          </h3>
+
+          {/* Description */}
+          <p
+            className="
+              text-xs
+              text-muted-foreground
+              leading-relaxed
+
+              transition-all
+              duration-500
+
+              group-hover:text-foreground
+            "
+          >
+            {feature.description}
+          </p>
+
+          {/* Garis bawah */}
+          <div
+            className="
+              mt-5
+              h-1
+              w-0
+              rounded-full
+              bg-orange-500
+
+              transition-all
+              duration-500
+
+              group-hover:w-16
+            "
+          />
+        </div>
+      </div>
+    );
+  })}
+</div>
 
       </div>
     </section>

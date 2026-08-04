@@ -27,7 +27,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="kontak" className="relative w-full bg-background py-16 sm:py-24">
+    <section id="kontak" className="relative w-full bg-background bg-muted/40 py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
    
@@ -52,9 +52,9 @@ export default function Contact() {
               </span>
             </div> */}
             
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            {/* <p className="text-sm text-muted-foreground leading-relaxed">
               Lembaga Sertifikasi Profesi terpercaya yang berkomitmen mencetak tenaga kerja profesional dan bersertifikasi standar nasional & internasional.
-            </p>
+            </p> */}
 
             {/* Contact Details List */}
             <div className="space-y-4 pt-2">
