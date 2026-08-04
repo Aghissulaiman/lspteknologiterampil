@@ -27,30 +27,39 @@ export default function Navbar() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const mounted = useIsMounted();
 
-  const currentTheme = mounted ? (resolvedTheme ?? theme ?? "light") : "light";
-  const isDarkTheme = currentTheme === "dark";
+  const activeTheme = mounted ? (resolvedTheme || theme || "light") : "light";
+  const isDarkTheme = activeTheme === "dark";
 
   const syncThemeToRoot = (nextTheme: "light" | "dark") => {
     if (typeof window === "undefined") return;
 
     const root = document.documentElement;
-    root.classList.remove("dark", "light");
-    root.classList.add(nextTheme);
+    if (nextTheme === "dark") {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
   };
 
-  // Sinkronkan class tema di HTML root secara aman saat theme berubah
   useEffect(() => {
     if (!mounted || typeof window === "undefined") return;
-    syncThemeToRoot(currentTheme as "light" | "dark");
-  }, [mounted, currentTheme]);
+    syncThemeToRoot(isDarkTheme ? "dark" : "light");
+  }, [mounted, isDarkTheme]);
 
-    const applyTheme = (nextTheme: "light" | "dark") => {
+  const applyTheme = (nextTheme: "light" | "dark") => {
     setTheme(nextTheme);
     syncThemeToRoot(nextTheme);
   };
 
   const toggleTheme = () => {
-    const nextTheme = isDarkTheme ? "light" : "dark";
+    const isCurrentlyDark =
+      (typeof document !== "undefined" && document.documentElement.classList.contains("dark")) ||
+      (resolvedTheme === "dark") ||
+      (theme === "dark");
+
+    const nextTheme = isCurrentlyDark ? "light" : "dark";
     applyTheme(nextTheme);
   };
 
