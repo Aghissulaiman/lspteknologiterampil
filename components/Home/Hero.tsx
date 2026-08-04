@@ -78,22 +78,22 @@ export default function Hero() {
           </div>
 
           {/* 2. Gambar Tengah (Foto Profesional) */}
-<div className="relative flex items-center justify-center lg:col-span-4 min-h-[380px] sm:min-h-[440px]">
-  {/* Lingkaran Dekoratif Soft Blue di Belakang Foto */}
-  <div className="absolute top-1/2 left-1/2 -z-10 h-[280px] w-[280px] sm:h-[340px] sm:w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent blur-xl" />
-  
-  {/* Pembungkus Foto (Diberi h-[380px] dan w-full agar ukurannya tidak 0px) */}
-  <div className="relative h-[380px] w-full max-w-[320px] sm:h-[440px] sm:max-w-[360px] overflow-hidden rounded-2xl">
-    {/* <Image
-      src="/Foto/Foto1.png"
-      alt="Profesional LSP Teknologi Terampil"
-      fill
-      sizes="(max-width: 768px) 100vw, 360px"
-      className="object-cover object-top"
-      priority
-    /> */}
-  </div>
-</div>
+<div className="relative flex items-center justify-center lg:col-span-4 min-h-[380px] sm:min-h-[460px]">
+            {/* Lingkaran Dekoratif Soft Blue di Belakang Foto */}
+            <div className="absolute top-1/2 left-1/2 -z-10 h-[280px] w-[280px] sm:h-[340px] sm:w-[340px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-2xl" />
+            
+            {/* Pembungkus Foto */}
+            <div className="relative h-[380px] w-full max-w-[320px] sm:h-[460px] sm:max-w-[380px]">
+              <Image
+                src="/Foto/hero-person.png"
+                alt="Profesional LSP Teknologi Terampil"
+                fill
+                sizes="(max-width: 768px) 100vw, 380px"
+                className="object-contain object-bottom drop-shadow-xl"
+                priority
+              />
+            </div>
+          </div>
 
           {/* 3. Stat Cards Kanan (Seragam dengan Nuansa Biru & Putih) */}
           <div className="flex flex-col gap-4 lg:col-span-3">
