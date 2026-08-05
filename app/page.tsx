@@ -1,11 +1,11 @@
-import About from "@/components/Home/About";
-import Contact from "@/components/Home/Contact";
-import Features from "@/components/Home/Features";
-import Footer from "@/components/Home/Footer";
-import Hero from "@/components/Home/Hero";
-import Navbar from "@/components/Home/Navbar";
-import Schemes from "@/components/Home/Schemes";
-import Workflow from "@/components/Home/Workflow";
+import About from "@/components/LandingPage/Landing/About";
+import Contact from "@/components/LandingPage/Landing/Contact";
+import Features from "@/components/LandingPage/Landing/Features";
+import Footer from "@/components/LandingPage/Landing/Footer";
+import Hero from "@/components/LandingPage/Landing/Hero";
+import Navbar from "@/components/LandingPage/Navbar";
+import Schemes from "@/components/LandingPage/Landing/Schemes";
+import Workflow from "@/components/LandingPage/Landing/Workflow";
 
 export default function Home() {
   return (

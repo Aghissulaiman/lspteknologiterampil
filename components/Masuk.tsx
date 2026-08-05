@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,6 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function MasukForm() {
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Tambahkan logika validasi / autentikasi di sini jika diperlukan
+    router.push("/program");
+  };
+
   return (
     <div 
       className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden" 
@@ -36,7 +45,7 @@ export default function MasukForm() {
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
             >
               <FieldGroup className="gap-3">
                 {/* Header Branding LSP */}
