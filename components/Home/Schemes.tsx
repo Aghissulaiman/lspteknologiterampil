@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Link from "next/link";
 import { ArrowUpRight, CheckCircle2, Sparkles, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -108,8 +109,9 @@ export default function Schemes() {
         {/* Grid List Skema */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredSchemes.map((scheme) => (
-            <div
+            <Link
               key={scheme.id}
+              href={`/Masuk?scheme=${scheme.code}`}
               className="
                 group
                 relative
@@ -256,8 +258,7 @@ export default function Schemes() {
                     ))}
                   </div>
 
-                  <button
-                    type="button"
+                  <div
                     aria-label={`Detail skema ${scheme.title}`}
                     className="
                       h-8
@@ -278,18 +279,20 @@ export default function Schemes() {
                     "
                   >
                     <ArrowUpRight className="w-4 h-4" />
-                  </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         {/* Footer Link */}
         <div className="mt-8 text-center">
-          <Button variant="outline" className="gap-2 border-border/80 font-medium cursor-pointer shadow-none">
-            <Search className="w-4 h-4" /> Lihat Seluruh Silabus & Dokumen Uji
-          </Button>
+          <Link href="/Masuk">
+            <Button variant="outline" className="gap-2 border-border/80 font-medium cursor-pointer shadow-none">
+              <Search className="w-4 h-4" /> Lihat Seluruh Silabus & Dokumen Uji
+            </Button>
+          </Link>
         </div>
 
       </div>

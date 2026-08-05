@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Contact() {
@@ -13,10 +13,17 @@ export default function Contact() {
     message: "",
   });
 
+  // State untuk mengontrol status pop-up
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Pesan terkirim:", formData);
-    alert("Terima kasih! Pesan Anda telah terkirim.");
+    
+    // Tampilkan Pop-Up Success
+    setIsModalOpen(true);
+    
+    // Reset Form Data
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
@@ -30,33 +37,11 @@ export default function Contact() {
     <section id="kontak" className="relative w-full bg-background bg-muted/40 py-16 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
-   
-
         {/* Content Section: Info & Form */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           
           {/* Information Column (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
-            
-            {/* Brand Logo & Brief */}
-            {/* <div className="flex items-center gap-3">
-              <Image 
-                src="/Logo/Logo2.png" 
-                alt="Logo LSP Teknologi Terampil"
-                width={60}
-                height={60}
-                className="object-contain"
-              />
-              <span className="text-xl font-bold text-foreground">
-                LSP <span className="text-primary">Teknologi Terampil</span>
-              </span>
-            </div> */}
-            
-            {/* <p className="text-sm text-muted-foreground leading-relaxed">
-              Lembaga Sertifikasi Profesi terpercaya yang berkomitmen mencetak tenaga kerja profesional dan bersertifikasi standar nasional & internasional.
-            </p> */}
-
-            {/* Contact Details List */}
             <div className="space-y-4 pt-2">
               
               {/* Alamat */}
@@ -202,7 +187,7 @@ export default function Contact() {
               <Button
                 type="submit"
                 size="lg"
-                className="w-full bg-primary text-primary-foreground hover:bg-orange-500 font-semibold shadow-md transition-colors"
+                className="w-full bg-primary text-primary-foreground hover:bg-orange-500 font-semibold shadow-md transition-colors cursor-pointer"
               >
                 Kirim Pesan Sekarang
                 <Send className="ml-2 h-4 w-4" />
@@ -213,6 +198,44 @@ export default function Contact() {
         </div>
 
       </div>
+
+      {/* POP-UP MODAL SUKSES */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-2xl bg-card p-6 shadow-2xl border border-border text-center transform transition-all animate-in zoom-in-95 duration-200">
+            {/* Tombol Close di sudut kanan atas */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Icon Sukses */}
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400">
+              <CheckCircle2 className="h-8 w-8" />
+            </div>
+
+            {/* Konten Pop-Up */}
+            <h3 className="text-xl font-bold text-foreground">
+              Pesan Berhasil Terkirim!
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              Terima kasih telah menghubungi kami. Tim LSP Teknologi Terampil akan segera membalas pesan Anda melalui email.
+            </p>
+
+            {/* Tombol Tutup */}
+            <div className="mt-6">
+              <Button
+                onClick={() => setIsModalOpen(false)}
+                className="w-full bg-primary hover:bg-orange-500 text-primary-foreground font-semibold cursor-pointer"
+              >
+                Selesai
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

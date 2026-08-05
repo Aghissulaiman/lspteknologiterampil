@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import MaintenanceModal from "@/components/MaintenanceModal"; // 1. Impor komponen modal
+import MaintenanceModal from "@/components/MaintenanceModal";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/icon.png", type: "image/png" },
-      { url: "/favicon.ico" }
+      { url: "/favicon.ico" },
     ],
     shortcut: "/icon.png",
     apple: "/apple-touch-icon.png",
@@ -61,8 +61,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <ThemeProvider>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          themes={["light", "dark", "orange"]}
+        >
           <MaintenanceModal />
           {children}
         </ThemeProvider>
