@@ -1,12 +1,12 @@
 import Footer from "@/components/LandingPage/Landing/Footer";
 import Navbar from "@/components/LandingPage/Navbar";
-import StrukturBagan from "@/components/LandingPage/Profile/struktur/StrukturBagan";
+import TukDaftar from "@/components/LandingPage/skema/Tuk/TukDaftar";
 
-export default function Struktur() {
+export default function Tuk() {
     return (
         <>
         <Navbar/>
-        <StrukturBagan/>
+        <TukDaftar/>
         <Footer/>
         </>
     )

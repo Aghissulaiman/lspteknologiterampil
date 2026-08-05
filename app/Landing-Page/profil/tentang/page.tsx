@@ -1,6 +1,7 @@
-import AboutHero from "@/components/Profile/Tentang/AboutHero";
+import AboutHero from "@/components/LandingPage/Profile/Tentang/AboutHero";
 import Navbar from "@/components/LandingPage/Navbar";
-import AboutVisiMisi from "@/components/Profile/Tentang/AboutVisiMisi";
+import AboutVisiMisi from "@/components/LandingPage/Profile/Tentang/AboutVisiMisi";
+import Footer from "@/components/LandingPage/Landing/Footer";
 
 export const metadata = {
   title: "Tentang LSP | LSP Teknologi Terampil",
@@ -13,6 +14,7 @@ export default function TentangLSPPage() {
       <Navbar/>
       <AboutHero />
       <AboutVisiMisi/>
+      <Footer/>
   
     </main>
   );

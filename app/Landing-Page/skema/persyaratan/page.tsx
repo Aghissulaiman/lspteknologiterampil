@@ -1,12 +1,12 @@
 import Footer from "@/components/LandingPage/Landing/Footer";
 import Navbar from "@/components/LandingPage/Navbar";
-import StrukturBagan from "@/components/LandingPage/Profile/struktur/StrukturBagan";
+import PersyaratanSkema from "@/components/LandingPage/skema/persyaratan/PersyaratanSkema";
 
-export default function Struktur() {
+export default function Persyaratan() {
     return (
         <>
         <Navbar/>
-        <StrukturBagan/>
+        <PersyaratanSkema/>
         <Footer/>
         </>
     )

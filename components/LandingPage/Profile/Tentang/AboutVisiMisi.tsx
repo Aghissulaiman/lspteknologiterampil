@@ -28,10 +28,6 @@ export default function AboutVisiMisi() {
         
         {/* Section Header */}
         <div className="mx-auto max-w-3xl text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
-            <Sparkles className="h-4 w-4" />
-            <span>Arah & Komitmen Strategis</span>
-          </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             Visi & Misi Operasional
           </h2>
@@ -154,7 +150,7 @@ export default function AboutVisiMisi() {
               </div>
 
               {/* Box Quote / Highlight */}
-              <div className="rounded-2xl border border-border bg-accent/40 p-6 space-y-4">
+                <div className="rounded-2xl border border-border bg-accent/40 p-6 space-y-4">
                 <p className="text-sm font-bold uppercase tracking-wider text-primary">
                   Integritas & Kualitas
                 </p>

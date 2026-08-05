@@ -1,12 +1,12 @@
 import Footer from "@/components/LandingPage/Landing/Footer";
 import Navbar from "@/components/LandingPage/Navbar";
-import StrukturBagan from "@/components/LandingPage/Profile/struktur/StrukturBagan";
+import LegalitasDaftar from "@/components/LandingPage/Profile/LegalitasDaftar";
 
-export default function Struktur() {
+export default function Legalitas() {
     return (
         <>
         <Navbar/>
-        <StrukturBagan/>
+        <LegalitasDaftar/>
         <Footer/>
         </>
     )
