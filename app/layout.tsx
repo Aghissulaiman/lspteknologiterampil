@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import MaintenanceModal from "@/components/MaintenanceModal"; // 1. Impor komponen modal
+import MaintenanceModal from "@/components/MaintenanceModal";
+import { ThemeProvider } from "@/components/theme-provider"; // 1. Impor ThemeProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,15 +56,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    /* 2. Tambahkan suppressHydrationWarning agar tidak ada warning mismatch saat load theme */
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        {/* 2. Pasang modal di atas children agar muncul langsung saat aplikasi dibuka */}
-        <MaintenanceModal />
-        
-        {children}
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        {/* 3. Bungkus seluruh aplikasi dengan ThemeProvider */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          themes={["light", "dark", "orange"]}
+        >
+          <MaintenanceModal />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
