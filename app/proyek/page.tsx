@@ -1,6 +1,6 @@
-import Navbar from "@/components/AI/Navbar";
-import FinalProjectAI from "@/components/Proyek/Proyek"; 
-import Footer from "@/components/Materi/Footer";
+import Navbar from "@/components/User/AI/Navbar";
+import FinalProjectAI from "@/components/User/Proyek/Proyek"; 
+import Footer from "@/components/User/Materi/Footer";
 
 
 export default function MateriPage() {
