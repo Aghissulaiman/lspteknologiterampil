@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import MaintenanceModal from "@/components/MaintenanceModal"; // 1. Impor komponen modal
 
 const geistSans = Geist({
@@ -57,13 +58,14 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {/* 2. Pasang modal di atas children agar muncul langsung saat aplikasi dibuka */}
-        <MaintenanceModal />
-        
-        {children}
+        <ThemeProvider>
+          <MaintenanceModal />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
