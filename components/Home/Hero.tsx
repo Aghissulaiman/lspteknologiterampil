@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link"; // Import Link dari Next.js
 import { ArrowRight, BookOpen, Users, ShieldCheck, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -81,20 +82,27 @@ export default function Hero() {
 
             {/* Tombol Akses */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="bg-primary text-primary-foreground hover:bg-orange-500 font-semibold shadow-md group"
-              >
-                Mulai Sertifikasi
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-primary/20 text-primary hover:bg-orange-300 font-semibold"
-              >
-                Lihat Skema Uji
-              </Button>
+              {/* Tombol Mulai Sertifikasi -> ke halaman /Masuk */}
+              <Link href="/Masuk" >
+                <Button 
+                  size="lg" 
+                  className="bg-primary text-primary-foreground hover:bg-orange-500 font-semibold shadow-md group w-full sm:w-auto"
+                >
+                  Mulai Sertifikasi
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+
+              {/* Tombol Lihat Skema Uji -> Scroll ke section #schemes */}
+              <Link href="/pendaftaran" >
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-primary/20 text-primary hover:bg-orange-300 font-semibold w-full sm:w-auto"
+                >
+                  Lihat Skema Uji
+                </Button>
+              </Link>
             </div>
           </div>
 

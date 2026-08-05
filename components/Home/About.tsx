@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Award, CheckCircle2, ShieldCheck, Users, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,7 +40,6 @@ export default function About() {
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-foreground">Visi Utama</h4>
-                    
                   </div>
                 </div>
 
@@ -104,12 +104,17 @@ export default function About() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap items-center gap-4">
-              <Button size="lg" className="bg-primary hover:bg-orange-500 text-primary-foreground font-semibold shadow-md cursor-pointer">
-                Profil Lengkap LSP
-              </Button>
-              <Button variant="outline" size="lg" className="border-border/80 font-semibold hover:bg-orange-300 cursor-pointer">
-                Struktur Organisasi
-              </Button>
+              <Link href="/Masuk?action=profile">
+                <Button size="lg" className="bg-primary hover:bg-orange-500 text-primary-foreground font-semibold shadow-md cursor-pointer">
+                  Profil Lengkap LSP
+                </Button>
+              </Link>
+              
+              <Link href="/Masuk?action=structure">
+                <Button variant="outline" size="lg" className="border-border/80 font-semibold hover:bg-orange-300 cursor-pointer">
+                  Struktur Organisasi
+                </Button>
+              </Link>
             </div>
 
           </div>
