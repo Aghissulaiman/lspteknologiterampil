@@ -1,5 +1,5 @@
 import About from "@/components/LandingPage/Landing/About";
-import Contact from "@/components/LandingPage/Landing/Contact";
+// import Contact from "@/components/LandingPage/Landing/Contact";
 import Features from "@/components/LandingPage/Landing/Features";
 import Footer from "@/components/LandingPage/Landing/Footer";
 import Hero from "@/components/LandingPage/Landing/Hero";
@@ -16,7 +16,7 @@ export default function Home() {
       <Features/>
       <Schemes/>
       <Workflow/>
-      <Contact/>
+      {/* <Contact/> */}
       <Footer/>
     </>
   )

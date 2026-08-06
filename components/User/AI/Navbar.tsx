@@ -142,11 +142,11 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { name: "Tentang", href: "/program", type: "page" },
+    { name: "Tentang", href: "/Home/program", type: "page" },
     { name: "Alur Pembelajaran", href: "#learning-path", type: "scroll" },
-    { name: "Materi", href: "/materi", type: "page" },
-    { name: "Proyek Akhir", href: "/proyek", type: "page" },
-    { name: "Kegiatan", href: "/kegiatan", type: "page" },
+    { name: "Materi", href: "/Home/materi", type: "page" },
+    { name: "Proyek Akhir", href: "/Home/proyek", type: "page" },
+    { name: "Kegiatan", href: "/Home/kegiatan", type: "page" },
   ];
 
   return (
