@@ -54,7 +54,7 @@ export default function VerifikasiSertifikat() {
     "BNSP-2026-11029": {
       nomorRegistrasi: "BNSP-2026-11029",
       nomorSertifikat: "50300 2411 0005678 2026",
-      namaLengkap: "Siti Rahmawati",
+      namaLengkap: "Nadya Cheril",
       skemaKompetensi: "Digital Marketing Manager",
       bidang: "Pemasaran Digital & Bisnis",
       status: "VALID",

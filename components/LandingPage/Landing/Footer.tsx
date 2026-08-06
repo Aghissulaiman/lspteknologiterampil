@@ -78,9 +78,9 @@ export default function Footer() {
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="group inline-flex items-center text-muted-foreground hover:text-primary transition-colors text-[11px] sm:text-xs"
+                        className="group inline-flex items-center text-muted-foreground hover:text-orange-500 transition-colors text-[11px] sm:text-xs"
                       >
-                        <ChevronRight className="w-2.5 h-2.5 mr-1 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+                        <ChevronRight className="w-2.5 h-2.5 mr-1 text-muted-foreground/50 group-hover:text-orange-500 transition-colors shrink-0" />
                         <span>{link.name}</span>
                       </Link>
                     </li>
@@ -98,9 +98,9 @@ export default function Footer() {
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="group inline-flex items-center text-muted-foreground hover:text-primary transition-colors text-[11px] sm:text-xs"
+                        className="group inline-flex items-center text-muted-foreground hover:text-orange-500 transition-colors text-[11px] sm:text-xs"
                       >
-                        <ChevronRight className="w-2.5 h-2.5 mr-1 text-muted-foreground/50 group-hover:text-primary transition-colors shrink-0" />
+                        <ChevronRight className="w-2.5 h-2.5 mr-1 text-muted-foreground/50 group-hover:text-orange-500 transition-colors shrink-0" />
                         <span>{link.name}</span>
                       </Link>
                     </li>

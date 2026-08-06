@@ -183,7 +183,8 @@ export default function InformasiBerita() {
                   </span>
                 </div>
 
-                <h2 className="text-xl sm:text-3xl font-black text-foreground group-hover:text-primary transition-colors leading-snug">
+                {/* UBAH DI SINI: group-hover:text-orange-500 */}
+                <h2 className="text-xl sm:text-3xl font-black text-foreground group-hover:text-orange-500 transition-colors leading-snug">
                   {beritaUtama.judul}
                 </h2>
 
@@ -197,9 +198,11 @@ export default function InformasiBerita() {
                   <User className="h-3.5 w-3.5 text-primary" />
                   {beritaUtama.penulis}
                 </span>
+
+                {/* UBAH DI SINI: hover:text-orange-500 & transition-colors */}
                 <a
                   href="#"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:underline"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-orange-500 hover:underline transition-colors"
                 >
                   <span>Baca Selengkapnya</span>
                   <ArrowRight className="h-3.5 w-3.5" />
@@ -263,11 +266,10 @@ export default function InformasiBerita() {
                 <button
                   key={idx}
                   onClick={() => setSelectedCategory(kat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    selectedCategory === kat
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === kat
                       ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-background/60 text-muted-foreground hover:bg-background"
-                  }`}
+                      : "bg-background/60 text-muted-foreground hover:bg-orange-500 hover:text-white"
+                    }`}
                 >
                   {kat}
                 </button>
@@ -293,7 +295,8 @@ export default function InformasiBerita() {
               {filteredBerita.map((item) => (
                 <article
                   key={item.id}
-                  className="bg-background border border-muted/30 rounded-3xl overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-300 flex flex-col justify-between group"
+                 
+                  className="bg-background border border-muted/30 rounded-3xl overflow-hidden hover:shadow-lg hover:border-orange-500/50 transition-all duration-300 flex flex-col justify-between group"
                 >
                   <div>
                     {/* Thumbnail Image */}
@@ -322,7 +325,8 @@ export default function InformasiBerita() {
                         </span>
                       </div>
 
-                      <h3 className="font-bold text-base text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                      {/* Ubah warna hover judul di sini: group-hover:text-orange-500 */}
+                      <h3 className="font-bold text-base text-foreground group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
                         {item.judul}
                       </h3>
 
@@ -337,9 +341,11 @@ export default function InformasiBerita() {
                     <span className="text-[11px] text-muted-foreground font-medium">
                       Oleh {item.penulis}
                     </span>
+
+                    {/* Ubah hover tombol panah di sini: group-hover:bg-orange-500 group-hover:text-white */}
                     <a
                       href="#"
-                      className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                      className="p-2 rounded-xl bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </a>

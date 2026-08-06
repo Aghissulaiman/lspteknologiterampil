@@ -32,9 +32,8 @@ export default function LegalitasGaleri() {
 
   return (
     <section className="py-10 lg:py-16 bg-background text-foreground">
-      {/* Diperlebar dari max-w-5xl ke max-w-7xl agar tidak terlalu banyak space kosong kanan-kiri */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header Section */}
         <div className="border-l-4 border-primary pl-6 mb-8 max-w-3xl">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary mb-1">
@@ -49,14 +48,13 @@ export default function LegalitasGaleri() {
           </p>
         </div>
 
-        {/* GRID 2x2 Diperlebar dan Ditingkatkan Proporsinya */}
+        {/* GRID Dokumen */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
           {galeriDokumen.map((doc, idx) => (
             <div
               key={idx}
-              className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-md hover:border-primary/50 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+              className="group relative rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-md hover:border-[#ff6600] hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
             >
-              {/* Rasio diubah dari 1/1.414 ke 1/1.2 agar tidak terlalu tinggi ke bawah */}
               <div className="relative aspect-[1/1.2] w-full rounded-xl bg-muted overflow-hidden border border-border/80 shadow-inner">
                 <Image
                   src={doc.image}
@@ -66,9 +64,9 @@ export default function LegalitasGaleri() {
                   className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
                 />
 
-                {/* Overlay Hover Zoom */}
+                {/* Overlay Hover Zoom Oren */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 backdrop-blur-[2px] p-4 text-center">
-                  <div className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-lg">
+                  <div className="flex items-center gap-2 rounded-xl bg-[#ff6600] px-4 py-2 text-xs font-bold text-white shadow-lg">
                     <ZoomIn className="h-4 w-4" />
                     <span>Perbesar Lembaran</span>
                   </div>
@@ -78,15 +76,15 @@ export default function LegalitasGaleri() {
                 </div>
 
                 {/* Badge Kategori Kertas */}
-                <span className="absolute top-3 left-3 rounded-lg bg-background/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary border border-border shadow-md">
+                <span className="absolute top-3 left-3 rounded-lg bg-background/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-primary group-hover:text-[#ff6600] group-hover:border-[#ff6600] border border-border shadow-md transition-colors">
                   {doc.badge}
                 </span>
               </div>
 
-              {/* Keterangan */}
+              {/* Keterangan & Judul */}
               <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+                  <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-[#ff6600] transition-colors">
                     {doc.title}
                   </h3>
                   <p className="text-xs font-mono text-muted-foreground mt-0.5">
@@ -94,7 +92,7 @@ export default function LegalitasGaleri() {
                   </p>
                 </div>
 
-                <div className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary group-hover:bg-[#ff6600]/10 group-hover:text-[#ff6600] transition-colors shrink-0">
                   <FileCheck2 className="h-4 w-4" />
                 </div>
               </div>

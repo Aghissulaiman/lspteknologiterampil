@@ -51,7 +51,7 @@ export default function AboutHero() {
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <Link
                 href="/Landing-Page/skema"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 hover:shadow-lg transition-all active:scale-[0.98]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-orange-500 hover:shadow-lg active:scale-[0.98]"
               >
                 <span>Explorasi Skema</span>
                 <ArrowRight className="h-4 w-4" />
@@ -59,7 +59,7 @@ export default function AboutHero() {
               
               <Link
                 href="/Landing-Page/profile/legalitas"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-input bg-card px-6 text-base font-semibold text-foreground hover:bg-accent hover:text-accent-foreground transition-all active:scale-[0.98]"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-input bg-card px-6 text-base font-semibold text-foreground transition-all hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:scale-[0.98]"
               >
                 Lihat Legalitas
               </Link>
@@ -88,7 +88,7 @@ export default function AboutHero() {
 
               {/* Stat Quick Cards */}
               <div className="mt-6 space-y-4">
-                <div className="rounded-2xl border border-border/50 bg-background/80 p-4 transition-all hover:border-primary/40">
+                <div className="rounded-2xl border border-border/50 bg-background/80 p-4 transition-all hover:border-orange-400">
                   <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
                     Lisensi Nomor
                   </p>

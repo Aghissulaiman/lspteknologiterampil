@@ -1,3 +1,4 @@
+
 import React from "react";
 import Image from "next/image";
 import { CheckCircle2, Target, Compass, Sparkles } from "lucide-react";
@@ -25,7 +26,7 @@ export default function AboutVisiMisi() {
   return (
     <section className="py-16 lg:py-24 bg-background border-b border-border/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="mx-auto max-w-3xl text-center mb-16 space-y-4">
           <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
@@ -38,7 +39,7 @@ export default function AboutVisiMisi() {
 
         {/* 1. SECTION VISI (Dengan Layout Gambar & Teks Berbobot) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-20">
-          
+
           {/* Gambar Visi */}
           <div className="lg:col-span-5 order-2 lg:order-1">
             <div className="relative mx-auto max-w-md lg:max-w-none rounded-3xl overflow-hidden border border-border bg-card shadow-xl group">
@@ -51,7 +52,7 @@ export default function AboutVisiMisi() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               </div>
-              
+
               {/* Badge Overlay */}
               <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-background/90 backdrop-blur-md border border-border/80 shadow-lg">
                 <p className="text-xs font-semibold text-primary uppercase tracking-wider">
@@ -70,11 +71,11 @@ export default function AboutVisiMisi() {
               <Compass className="h-6 w-6" />
               <span>VISI UTAMA</span>
             </div>
-            
+
             <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-snug">
               Menjadi Lembaga Sertifikasi Profesi Pilihan Utama yang Terpercaya dan Diakui Nasional dalam Penjaminan Mutu Tenaga Kerja TIK.
             </h3>
-            
+
             <div className="space-y-4 text-muted-foreground text-base leading-relaxed">
               <p>
                 Dalam menghadapi era transformasi digital dan persaingan tenaga kerja yang kian kompetitif, LSP Teknologi Terampil bertekad menjadi acuan (*benchmark*) mutu pengujian standar kompetensi di Indonesia.
@@ -101,14 +102,14 @@ export default function AboutVisiMisi() {
 
         {/* 2. SECTION MISI (Layout List Interaktif + Gambar Pendukung) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-8 border-t border-border/60">
-          
+
           {/* Konten Misi (Kiri) */}
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 text-primary font-bold text-lg">
               <Target className="h-6 w-6" />
               <span>MISI STRATEGIS</span>
             </div>
-            
+
             <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-snug">
               4 Komitmen Mendasar dalam Menjalankan Operasional Sertifikasi
             </h3>
@@ -117,14 +118,14 @@ export default function AboutVisiMisi() {
               {misiPoints.map((item, index) => (
                 <div
                   key={index}
-                  className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md"
+                  className="group rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm transition-all hover:border-orange-500/50 hover:shadow-md"
                 >
                   <div className="flex items-start gap-4">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary group-hover:bg-orange-500 group-hover:text-white transition-colors">
                       0{index + 1}
                     </span>
                     <div className="space-y-1.5">
-                      <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                      <h4 className="text-lg font-bold text-foreground group-hover:text-orange-500 transition-colors">
                         {item.title}
                       </h4>
                       <p className="text-muted-foreground text-base leading-relaxed">
@@ -150,7 +151,7 @@ export default function AboutVisiMisi() {
               </div>
 
               {/* Box Quote / Highlight */}
-                <div className="rounded-2xl border border-border bg-accent/40 p-6 space-y-4">
+              <div className="rounded-2xl border border-border bg-accent/40 p-6 space-y-4">
                 <p className="text-sm font-bold uppercase tracking-wider text-primary">
                   Integritas & Kualitas
                 </p>

@@ -95,7 +95,7 @@ export default function TukDaftar() {
         
         {/* Header Utama TUK Online */}
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-3xl font-black tracking-tight sm:text-5xl mb-4">
+          <h1 className="text-3xl font-black tracking-tight sm:text-5xl mb-4 hover:text-[#ff6600] active:text-[#0066ff] cursor-pointer transition-colors select-none">
             Tempat Uji Kompetensi Online
           </h1>
           <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed">
