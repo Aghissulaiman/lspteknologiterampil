@@ -77,32 +77,32 @@ export default function Navbar() {
       title: "Profil",
       href: "#",
       children: [
-        { name: "Tentang LSP", href: "/Landing-Page/profil/tentang" },
-        { name: "Struktur Organisasi", href: "/Landing-Page/profil/struktur" },
-        { name: "Legalitas & Lisensi", href: "/Landing-Page/profil/legalitas" },
+        { name: "Tentang LSP", href: "/profil/tentang" },
+        { name: "Struktur Organisasi", href: "/profil/struktur" },
+        { name: "Legalitas & Lisensi", href: "/profil/legalitas" },
       ],
     },
     {
       title: "Skema",
       href: "#",
       children: [
-        { name: "Skema Sertifikasi", href: "/Landing-Page/skema" },
-        { name: "Tempat Uji Kompetensi (TUK)", href: "/Landing-Page/skema/tuk" },
-        { name: "Persyaratan Asesi", href: "/Landing-Page/skema/persyaratan" },
+        { name: "Skema Sertifikasi", href: "/skema" },
+        { name: "Tempat Uji Kompetensi (TUK)", href: "/skema/tuk" },
+        { name: "Persyaratan Asesi", href: "/skema/persyaratan" },
       ],
     },
     {
       title: "Informasi",
       href: "#",
       children: [
-        { name: "Berita & Kegiatan", href: "/Landing-Page/informasi/berita" },
-        { name: "Cek Pemegang Sertifikat", href: "/Landing-Page/informasi/verifikasi-sertifikat" },
-        { name: "FAQ & Bantuan", href: "/Landing-Page/informasi/faq" },
+        { name: "Berita & Kegiatan", href: "/informasi/berita" },
+        { name: "Cek Pemegang Sertifikat", href: "/informasi/verifikasi-sertifikat" },
+        { name: "FAQ & Bantuan", href: "/informasi/faq" },
       ],
     },
     {
       title: "Kontak",
-      href: "/Landing-Page/kontak",
+      href: "/kontak",
     },
   ];
 
@@ -202,7 +202,7 @@ export default function Navbar() {
 
           {/* CTA Utama Pendaftaran */}
           <Link
-            href="/pendaftaran"
+            href="/auth/pendaftaran"
             className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
           >
             Daftar Sertifikasi
@@ -285,7 +285,7 @@ export default function Navbar() {
           {/* Action Button Mobile */}
           <div className="pt-4">
             <Link
-              href="/pendaftaran"
+              href="/auth/pendaftaran"
               onClick={() => setIsOpen(false)}
               className="flex w-full h-11 items-center justify-center rounded-md text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
             >

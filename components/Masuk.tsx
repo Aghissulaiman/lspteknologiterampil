@@ -19,21 +19,16 @@ export default function MasukForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Tambahkan logika validasi / autentikasi di sini jika diperlukan
-    router.push("Home/program");
+    // Tambahkan logika autentikasi/backend di sini jika diperlukan
+    router.push("/home/program");
   };
 
   return (
-    <div 
-      className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden" 
+    <div
+      className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden"
       style={{ backgroundImage: "url('/Hero/Foto1.png')" }}
     >
-      
-      {/* 
-        OVERLAY BACKGROUND:
-        - Light Mode: Sangat transparan (bg-white/10) + Blur halus (backdrop-blur-sm)
-        - Dark Mode : Kegelapan sedang (dark:bg-black/70) + Blur halus
-      */}
+      {/* OVERLAY BACKGROUND */}
       <div className="absolute inset-0 bg-white/10 backdrop-blur-sm dark:bg-black/70 dark:backdrop-blur-sm z-0 transition-all duration-300" />
 
       {/* Main Content */}
@@ -41,7 +36,6 @@ export default function MasukForm() {
         {/* CARD FORMULIR TRANSPARAN */}
         <Card className="w-full max-w-md overflow-hidden border border-white/40 dark:border-border/60 bg-white/50 dark:bg-card/80 backdrop-blur-md shadow-2xl my-auto text-card-foreground transition-all duration-300">
           <CardContent className="p-6">
-            
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
@@ -61,25 +55,34 @@ export default function MasukForm() {
                       />
                     </div>
                     <span className="text-lg font-bold tracking-tight text-foreground">
-                      LSP <span className="text-primary">Teknologi Terampil</span>
+                      LSP{" "}
+                      <span className="text-primary">Teknologi Terampil</span>
                     </span>
                   </div>
-                  <h1 className="text-xl font-bold tracking-tight text-foreground">Masuk Akun Asesi</h1>
+                  <h1 className="text-xl font-bold tracking-tight text-foreground">
+                    Masuk Akun Asesi
+                  </h1>
                   <p className="text-xs text-balance text-muted-foreground">
-                    Masukkan email dan kata sandi Anda untuk mengakses portal sertifikasi
+                    Masukkan email dan kata sandi Anda untuk mengakses portal
+                    sertifikasi
                   </p>
                 </div>
 
-                {/* Input Email / NIK */}
+                {/* Input Khusus Email */}
                 <Field className="gap-1">
-                  <FieldLabel htmlFor="email" className="text-xs text-foreground font-medium">
+                  <FieldLabel
+                    htmlFor="email"
+                    className="text-xs text-foreground font-medium"
+                  >
                     Email Aktif
                   </FieldLabel>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="nama@email.com"
                     required
+                    autoComplete="email"
                     className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </Field>
@@ -87,7 +90,10 @@ export default function MasukForm() {
                 {/* Input Password */}
                 <Field className="gap-1">
                   <div className="flex items-center justify-between">
-                    <FieldLabel htmlFor="password" className="text-xs text-foreground font-medium">
+                    <FieldLabel
+                      htmlFor="password"
+                      className="text-xs text-foreground font-medium"
+                    >
                       Kata Sandi
                     </FieldLabel>
                     <Link
@@ -99,13 +105,15 @@ export default function MasukForm() {
                   </div>
                   <Input
                     id="password"
+                    name="password"
                     type="password"
                     required
+                    autoComplete="current-password"
                     className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground focus:border-primary"
                   />
                 </Field>
 
-                {/* Tombol Submit */}
+                {/* Tombol Submit Navigasi */}
                 <Field className="pt-2">
                   <Button
                     type="submit"
@@ -126,7 +134,6 @@ export default function MasukForm() {
                 </FieldDescription>
               </FieldGroup>
             </form>
-
           </CardContent>
         </Card>
       </main>
@@ -134,11 +141,17 @@ export default function MasukForm() {
       {/* Footer */}
       <footer className="relative z-10 w-full py-2 text-center text-[11px] text-foreground/80 shrink-0 bg-white/30 dark:bg-black/40 backdrop-blur-md transition-colors duration-200 border-t border-white/20 dark:border-border">
         Dengan masuk, Anda menyetujui{" "}
-        <Link href="#" className="underline underline-offset-2 hover:text-foreground">
+        <Link
+          href="#"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
           Syarat &amp; Ketentuan
         </Link>{" "}
         serta{" "}
-        <Link href="#" className="underline underline-offset-2 hover:text-foreground">
+        <Link
+          href="#"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
           Kebijakan Privasi
         </Link>{" "}
         LSP Teknologi Terampil.

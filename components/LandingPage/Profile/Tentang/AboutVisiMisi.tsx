@@ -1,24 +1,24 @@
 
 import React from "react";
 import Image from "next/image";
-import { CheckCircle2, Target, Compass, Sparkles } from "lucide-react";
+import { Target, Compass } from "lucide-react";
 
 export default function AboutVisiMisi() {
   const misiPoints = [
     {
-      title: "Penyelenggaraan Asesmen Independen & Transparan",
+      title: "Penyelenggaraan Uji Kompetensi Akuntabel & Objektif",
       desc: "Melaksanakan uji kompetensi yang akuntabel, objektif, serta bebas dari konflik kepentingan dengan mengacu secara konsisten pada Standar Kompetensi Kerja Nasional Indonesia (SKKNI).",
     },
     {
-      title: "Pengembangan Skema Berbasis Tuntutan Industri Digital",
-      desc: "Merumuskan dan memperbarui skema sertifikasi secara berkala mengikuti dinamika perkembangan teknologi global, AI, rekayasa perangkat lunak, dan infrastruktur IT.",
+      title: "Pusat Pengembangan Kompetensi Talenta Digital",
+      desc: "Menjadi pusat pengembangan kompetensi terkemuka yang melahirkan talenta digital berstandar internasional sesuai dinamika industri masa depan.",
     },
     {
-      title: "Penjaminan Mutu Asesor & Tempat Uji Kompetensi (TUK)",
-      desc: "Meningkatkan kapabilitas dan integritas para asesor kompetensi terlisensi BNSP serta memastikan sarana dan prasarana TUK memenuhi standar operasional baku.",
+      title: "Penjaminan Mutu Berkelanjutan Asesor & TUK",
+      desc: "Menyelenggarakan penjaminan mutu yang berkelanjutan bagi Asesor dan Tempat Uji Kompetensi (TUK) guna menjaga integritas, objektivitas, dan standar kualitas uji kompetensi.",
     },
     {
-      title: "Sinergi Strategis Ekosistem Vokasi & Industri",
+      title: "Kemitraan Berkelanjutan dengan Ekosistem DUDI",
       desc: "Membangun kemitraan berkelanjutan dengan SMK, perguruan tinggi, asosiasi profesi, dan dunia usaha untuk mempercepat penyerapan tenaga kerja tersertifikasi.",
     },
   ];
@@ -75,27 +75,6 @@ export default function AboutVisiMisi() {
             <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-snug">
               Menjadi Lembaga Sertifikasi Profesi Pilihan Utama yang Terpercaya dan Diakui Nasional dalam Penjaminan Mutu Tenaga Kerja TIK.
             </h3>
-
-            <div className="space-y-4 text-muted-foreground text-base leading-relaxed">
-              <p>
-                Dalam menghadapi era transformasi digital dan persaingan tenaga kerja yang kian kompetitif, LSP Teknologi Terampil bertekad menjadi acuan (*benchmark*) mutu pengujian standar kompetensi di Indonesia.
-              </p>
-              <p>
-                Kami tidak hanya menerbitkan sertifikat, melainkan memastikan setiap individu yang lulus memiliki pembuktian kapasitas kerja aktual (*actual competence*) yang selaras dengan kebutuhan dunia usaha dan dunia industri (DUDI).
-              </p>
-            </div>
-
-            {/* Indikator Kunci Visi */}
-            <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3.5 rounded-xl border border-border bg-card/50 flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span className="text-sm font-semibold text-foreground">Pengakuan Standar BNSP</span>
-              </div>
-              <div className="p-3.5 rounded-xl border border-border bg-card/50 flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span className="text-sm font-semibold text-foreground">Kesesuaian Kebutuhan DUDI</span>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -109,10 +88,6 @@ export default function AboutVisiMisi() {
               <Target className="h-6 w-6" />
               <span>MISI STRATEGIS</span>
             </div>
-
-            <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-snug">
-              4 Komitmen Mendasar dalam Menjalankan Operasional Sertifikasi
-            </h3>
 
             <div className="space-y-4 pt-2">
               {misiPoints.map((item, index) => (
@@ -140,40 +115,13 @@ export default function AboutVisiMisi() {
 
           {/* Gambar Pendukung Misi (Kanan Sticky) */}
           <div className="lg:col-span-5 lg:sticky lg:top-28">
-            <div className="space-y-6">
-              <div className="relative h-[260px] sm:h-[320px] w-full rounded-3xl overflow-hidden border border-border bg-card shadow-lg">
-                <Image
-                  src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80"
-                  alt="Kolaborasi Tim Asesor dan Peserta"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
-              {/* Box Quote / Highlight */}
-              <div className="rounded-2xl border border-border bg-accent/40 p-6 space-y-4">
-                <p className="text-sm font-bold uppercase tracking-wider text-primary">
-                  Integritas & Kualitas
-                </p>
-                <blockquote className="text-base italic text-foreground leading-relaxed">
-                  &ldquo;Sertifikasi bukan sekadar lembar kertas, melainkan wujud pengakuan atas kapasitas, etika kerja, dan profesionalisme tenaga ahli Indonesia.&rdquo;
-                </blockquote>
-
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {[
-                    "Akuntabel",
-                    "Profesional",
-                    "Berkelanjutan",
-                  ].map((value) => (
-                    <span
-                      key={value}
-                      className="inline-flex items-center rounded-full border border-primary/20 bg-background/80 px-3 py-1.5 text-xs font-semibold text-primary"
-                    >
-                      {value}
-                    </span>
-                  ))}
-                </div>
-              </div>
+            <div className="relative h-[260px] sm:h-[320px] w-full rounded-3xl overflow-hidden border border-border bg-card shadow-lg">
+              <Image
+                src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80"
+                alt="Kolaborasi Tim Asesor dan Peserta"
+                fill
+                className="object-cover"
+              />
             </div>
           </div>
 

@@ -166,7 +166,7 @@ export default function PendaftaranForm() {
                 <FieldDescription className="text-center text-xs pt-0.5 text-muted-foreground">
                   Sudah memiliki akun Asesi?{" "}
                   <Link
-                    href="/Masuk"
+                    href="/auth/masuk"
                     className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     Masuk Sekarang
