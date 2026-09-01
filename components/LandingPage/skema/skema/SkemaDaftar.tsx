@@ -205,7 +205,7 @@ export default function SkemaDaftar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   // State untuk melacak kartu mana yang lagi di-hover
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
   const categories = ["Semua", "Software & Web", "Jaringan & Cloud", "Data & AI"];
 
