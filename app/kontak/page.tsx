@@ -1,6 +1,6 @@
-import KontakHalaman from "@/components/LandingPage/Kontak/KontakHalaman";
-import Footer from "@/components/LandingPage/Landing/Footer";
-import Navbar from "@/components/LandingPage/Navbar";
+import KontakHalaman from "@/components/landing/Kontak/KontakHalaman";
+import Footer from "@/components/landing/Landing/Footer";
+import Navbar from "@/components/landing/Navbar";
 
 export default function Kontak() {
     return (

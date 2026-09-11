@@ -1,9 +1,9 @@
-import Navbar from "@/components/User/AI/Navbar";
-import About from "@/components/User/AI/About";
-import LearningPath from "@/components/User/AI/LearningPath";
+import Navbar from "@/components/portal/AI/Navbar";
+import About from "@/components/portal/AI/About";
+import LearningPath from "@/components/portal/AI/LearningPath";
 // import Hero from "@/components/AI/Hero";
 // import Academy from "@/components/AI/Academy";
-import Footer from "@/components/User/AI/Footer";
+import Footer from "@/components/portal/AI/Footer";
 
 // import Materi from "@/components/AI/Materi";
 // import Benefit from "@/components/AI/Benefit";

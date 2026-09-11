@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -20,7 +21,6 @@ function useIsMounted() {
   );
 }
 
-// Data simulasi item pencarian
 const searchableItems = [
   { title: "Tentang Program", href: "/program", category: "Halaman", type: "page" },
   { title: "Alur Pembelajaran", href: "#learning-path", category: "Section", type: "scroll" },
@@ -32,29 +32,58 @@ const searchableItems = [
   { title: "AI Productivity & Tools", href: "/materi#productivity", category: "Modul", type: "page" },
 ];
 
+// Nav links dipisah: prioritas utama vs sekunder
+const primaryNavLinks = [
+  { name: "Dashboard", href: "/home/dashboard", type: "page" },
+  { name: "Jadwal", href: "/home/jadwal", type: "page" },
+  { name: "Materi", href: "/home/materi", type: "page" },
+];
+
+const secondaryNavLinks = [
+  { name: "Pendaftaran", href: "/home/pendaftaran", type: "page" },
+  { name: "Sertifikat Saya", href: "/home/sertifikat", type: "page" },
+  { name: "Program AI", href: "/home/program", type: "page" },
+  { name: "Proyek Akhir", href: "/home/proyek", type: "page" },
+];
+
+const allNavLinks = [...primaryNavLinks, ...secondaryNavLinks];
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const mounted = useIsMounted();
   const router = useRouter();
 
-  // State Search & Focus
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
 
-  // Simulasi login status
-  const isLoggedIn = true;
+  const isLoggedIn = auth.isAuthenticated();
+  const currentUser = auth.getStoredUser();
+  const displayName = currentUser?.profile?.nama_lengkap || currentUser?.email || "Pengguna";
+  const displayEmail = currentUser?.email || "";
+
+  const handleLogout = () => {
+    auth.logout();
+    setIsProfileOpen(false);
+    router.push("/auth/masuk");
+    router.refresh();
+  };
 
   const activeTheme = mounted ? (resolvedTheme || theme) : "light";
   const isDarkTheme = activeTheme === "dark";
 
-  // Klik di luar area search untuk melepaskan fokus & menutup dropdown
+  // Klik di luar untuk menutup dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchFocused(false);
+      }
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setIsMoreOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -112,17 +141,13 @@ export default function Navbar() {
       if (element) {
         const navHeight = 80;
         const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-        const offsetPosition = elementPosition - navHeight;
-
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: "smooth",
-        });
+        window.scrollTo({ top: elementPosition - navHeight, behavior: "smooth" });
       }
     }
     setIsOpen(false);
     setIsProfileOpen(false);
     setIsSearchFocused(false);
+    setIsMoreOpen(false);
   };
 
   const handleSearchResultSelect = (item: typeof searchableItems[0]) => {
@@ -141,17 +166,9 @@ export default function Navbar() {
     }
   };
 
-  const navLinks = [
-    { name: "Tentang", href: "/home/program", type: "page" },
-    { name: "Alur Pembelajaran", href: "#learning-path", type: "scroll" },
-    { name: "Materi", href: "/home/materi", type: "page" },
-    { name: "Proyek Akhir", href: "/home/proyek", type: "page" },
-    { name: "Kegiatan", href: "/home/kegiatan", type: "page" },
-  ];
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
         
         {/* Left Side: Brand Logo & Title */}
         <Link href="/" className="flex items-center gap-3 shrink-0 cursor-pointer z-10">
@@ -179,24 +196,25 @@ export default function Navbar() {
         </Link>
 
         {/* Center Container: Search Bar & Navigation Menu */}
-        <div className={`hidden sm:flex items-center transition-all duration-500 ease-in-out flex-1 ${
-          isSearchFocused ? "justify-start gap-6 ml-4" : "justify-center gap-6 mx-auto"
+        {/* Muncul dari md ke atas, dengan gap yang lebih lega */}
+        <div className={`hidden md:flex items-center transition-all duration-500 ease-in-out flex-1 min-w-0 ${
+          isSearchFocused ? "justify-start gap-4" : "justify-center gap-4"
         }`}>
           
-          {/* Search Bar - Awalnya di tengah, saat diklik memanjang & bergeser */}
+          {/* Search Bar */}
           <div 
             ref={searchRef} 
             className={`relative transition-all duration-500 ease-in-out ${
               isSearchFocused 
-                ? "flex-1 max-w-xl lg:max-w-2xl" 
-                : "w-44 md:w-56 lg:w-64"
+                ? "flex-1 max-w-xl" 
+                : "w-48 lg:w-64 xl:w-72"
             }`}
           >
             <div className="relative w-full">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
-                placeholder="Cari materi, modul, program..."
+                placeholder="Cari materi, modul..."
                 value={searchQuery}
                 onFocus={() => setIsSearchFocused(true)}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -247,41 +265,54 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Navigasi - Otomatis terdorong ke kanan saat Search diklik & memanjang */}
-          <div className={`hidden lg:flex items-center space-x-4 lg:space-x-6 transition-all duration-500 ${
+          {/* Navigasi Desktop - hanya muncul di lg ke atas */}
+          <div className={`hidden lg:flex items-center gap-1 xl:gap-2 transition-all duration-500 ${
             isSearchFocused ? "ml-auto" : ""
           }`}>
-            {navLinks.map((link) => {
-              const isScroll = link.type === "scroll";
-              const href = link.href;
-              
-              return isScroll ? (
-                <a
-                  key={link.name}
-                  href={href}
-                  onClick={(e) => handleNavClick(e, href)}
-                  className="text-xs lg:text-sm font-medium text-muted-foreground transition-colors hover:text-primary whitespace-nowrap"
-                >
-                  {link.name}
-                </a>
-              ) : (
-                <Link
-                  key={link.name}
-                  href={href}
-                  className="text-xs lg:text-sm font-medium text-muted-foreground transition-colors hover:text-primary whitespace-nowrap"
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
+            {/* Primary Links */}
+            {primaryNavLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="px-2.5 xl:px-3 py-2 text-xs xl:text-sm font-medium text-muted-foreground transition-colors hover:text-primary whitespace-nowrap rounded-md hover:bg-accent/50"
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            {/* "More" Dropdown untuk secondary links */}
+            <div ref={moreRef} className="relative">
+              <button
+                onClick={() => setIsMoreOpen(!isMoreOpen)}
+                className="flex items-center gap-1 px-2.5 xl:px-3 py-2 text-xs xl:text-sm font-medium text-muted-foreground transition-colors hover:text-primary whitespace-nowrap rounded-md hover:bg-accent/50"
+              >
+                Lainnya
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isMoreOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isMoreOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-border bg-background shadow-lg py-1 z-50 animate-in fade-in-50 slide-in-from-top-2">
+                  {secondaryNavLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setIsMoreOpen(false)}
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
 
         {/* Right Side: Action Buttons & User Menu */}
-        <div className="hidden items-center gap-2 lg:gap-3 sm:flex shrink-0 z-10">
+        <div className="hidden items-center gap-2 lg:gap-2.5 sm:flex shrink-0 z-10">
           
-          {/* Tombol Theme Switcher */}
+          {/* Theme Switcher */}
           <Button
             variant="outline"
             size="icon"
@@ -320,14 +351,15 @@ export default function Navbar() {
                 <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <User className="h-4 w-4 text-primary" />
                 </div>
+                <span className="hidden text-xs font-medium text-foreground xl:block max-w-24 truncate">{displayName}</span>
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
               </Button>
 
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-background shadow-lg py-1 z-50">
                   <div className="px-4 py-3 border-b border-border">
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">john@email.com</p>
+                    <p className="text-sm font-medium text-foreground">{displayName}</p>
+                    <p className="text-xs text-muted-foreground">{displayEmail}</p>
                   </div>
                   <Link
                     href="/profile"
@@ -347,7 +379,7 @@ export default function Navbar() {
                   </Link>
                   <button
                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    onClick={() => setIsProfileOpen(false)}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
                     Keluar
@@ -357,7 +389,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link
-              href="/Masuk"
+              href="/auth/masuk"
               className="inline-flex h-9 items-center justify-center rounded-md px-5 text-xs font-semibold shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Masuk
@@ -395,7 +427,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Navigation */}
       {isOpen && (
-        <div className="bg-background/95 backdrop-blur-md px-4 pt-2 pb-6 sm:hidden space-y-4 border-b border-border">
+        <div className="bg-background/95 backdrop-blur-md px-4 pt-2 pb-6 sm:hidden space-y-4 border-b border-border max-h-[calc(100vh-5rem)] overflow-y-auto">
           
           <div className="relative w-full pt-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -426,31 +458,18 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Semua nav links di mobile */}
           <div className="space-y-1">
-            {navLinks.map((link) => {
-              const isScroll = link.type === "scroll";
-              const href = link.href;
-              
-              return isScroll ? (
-                <a
-                  key={link.name}
-                  href={href}
-                  onClick={(e) => handleNavClick(e, href)}
-                  className="block py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </a>
-              ) : (
-                <Link
-                  key={link.name}
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className="block py-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
+            {allNavLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="block py-2.5 px-3 text-sm font-medium text-foreground hover:text-primary hover:bg-accent/50 rounded-md transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
 
           <div className="border-t border-border pt-3 space-y-2">
@@ -460,14 +479,14 @@ export default function Navbar() {
                   <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">john@email.com</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{displayEmail}</p>
                   </div>
                 </div>
                 <Link
                   href="/profile"
-                  className="flex items-center gap-2 py-2 text-sm text-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-2 py-2.5 px-3 text-sm text-foreground hover:text-primary hover:bg-accent/50 rounded-md transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   <User className="h-4 w-4" />
@@ -475,15 +494,15 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/settings"
-                  className="flex items-center gap-2 py-2 text-sm text-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-2 py-2.5 px-3 text-sm text-foreground hover:text-primary hover:bg-accent/50 rounded-md transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   <Settings className="h-4 w-4" />
                   Pengaturan
                 </Link>
                 <button
-                  className="flex items-center gap-2 py-2 text-sm text-red-600 hover:text-red-700 transition-colors w-full"
-                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 py-2.5 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors w-full"
+                  onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
                   Keluar
@@ -491,9 +510,9 @@ export default function Navbar() {
               </>
             ) : (
               <Link
-                href="/Masuk"
+                href="/auth/masuk"
                 onClick={() => setIsOpen(false)}
-                className="flex w-full h-9 items-center justify-center rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="flex w-full h-10 items-center justify-center rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 Masuk
               </Link>

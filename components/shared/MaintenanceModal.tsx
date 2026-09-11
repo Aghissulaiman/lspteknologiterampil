@@ -1,16 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function MaintenanceModal() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    // Munculkan popup setelah komponen dirender di client
-    setIsOpen(true);
-  }, []);
+  const [isOpen, setIsOpen] = useState(true);
 
   if (!isOpen) return null;
 

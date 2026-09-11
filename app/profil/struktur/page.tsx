@@ -1,6 +1,6 @@
-import Footer from "@/components/LandingPage/Landing/Footer";
-import Navbar from "@/components/LandingPage/Navbar";
-import StrukturBagan from "@/components/LandingPage/Profile/struktur/StrukturBagan";
+import Footer from "@/components/landing/Landing/Footer";
+import Navbar from "@/components/landing/Navbar";
+import StrukturBagan from "@/components/landing/Profile/struktur/StrukturBagan";
 
 export default function Struktur() {
     return (

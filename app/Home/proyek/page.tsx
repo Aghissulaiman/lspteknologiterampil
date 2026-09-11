@@ -1,7 +1,7 @@
-import Navbar from "@/components/User/AI/Navbar";
-import Footer from "@/components/User/Materi/Footer";
-// import HeroProgramAkhirAI from "@/components/User/Proyek/HeroProgramAkhirAI";
-import ProgramAkhirAI from "@/components/User/Proyek/ProgramAkhirAI";
+import Navbar from "@/components/portal/AI/Navbar";
+import Footer from "@/components/portal/Materi/Footer";
+// import HeroProgramAkhirAI from "@/components/portal/Proyek/HeroProgramAkhirAI";
+import ProgramAkhirAI from "@/components/portal/Proyek/ProgramAkhirAI";
 
 
 export default function MateriPage() {

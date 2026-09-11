@@ -1,6 +1,6 @@
-import FAQHalaman from "@/components/LandingPage/informasi/FAQ/FAQHalaman";
-import Footer from "@/components/LandingPage/Landing/Footer";
-import Navbar from "@/components/LandingPage/Navbar";
+import FAQHalaman from "@/components/landing/informasi/FAQ/FAQHalaman";
+import Footer from "@/components/landing/Landing/Footer";
+import Navbar from "@/components/landing/Navbar";
 
 export default function FAQ() {
     return (

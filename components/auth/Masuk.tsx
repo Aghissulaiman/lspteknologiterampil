@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,14 +13,32 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { auth, ApiError } from "@/lib/auth";
 
 export default function MasukForm() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Tambahkan logika autentikasi/backend di sini jika diperlukan
-    router.push("/home/program");
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
+
+    try {
+      await auth.login(email, password);
+      router.push("/home/program");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "Terjadi kesalahan. Coba lagi.",
+      );
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -114,19 +132,25 @@ export default function MasukForm() {
                 </Field>
 
                 {/* Tombol Submit Navigasi */}
+                {error && (
+                  <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 border border-red-500/20">
+                    {error}
+                  </div>
+                )}
                 <Field className="pt-2">
                   <Button
                     type="submit"
-                    className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
+                    disabled={isLoading}
+                    className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Masuk Sekarang
+                    {isLoading ? "Memproses..." : "Masuk Sekarang"}
                   </Button>
                 </Field>
 
                 <FieldDescription className="text-center text-xs pt-1 text-muted-foreground">
                   Belum memiliki akun Asesi?{" "}
                   <Link
-                    href="/pendaftaran"
+                    href="/auth/pendaftaran"
                     className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     Daftar Akun Baru

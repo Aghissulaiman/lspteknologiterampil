@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,8 +13,54 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { auth, ApiError } from "@/lib/auth";
 
 export default function PendaftaranForm() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData(e.currentTarget);
+    const nama_lengkap = String(formData.get("fullname") || "");
+    const nik = String(formData.get("nik") || "");
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
+    const confirmPassword = String(formData.get("confirm-password") || "");
+
+    if (!nama_lengkap || !nik || !email || !password) {
+      setError("Mohon lengkapi semua kolom yang wajib diisi.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Kata sandi minimal 8 karakter.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Ulangi kata sandi tidak cocok.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await auth.register({ email, password, role: "ASESI", nama_lengkap, nik });
+      setSuccess("Pendaftaran berhasil! Silakan masuk menggunakan akun Anda.");
+      setIsLoading(false);
+      router.push("/auth/masuk");
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "Terjadi kesalahan. Coba lagi.",
+      );
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div 
       className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden" 
@@ -40,7 +87,7 @@ export default function PendaftaranForm() {
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
             >
               <FieldGroup className="gap-2.5">
                 {/* Header Branding LSP */}
@@ -72,6 +119,7 @@ export default function PendaftaranForm() {
                   </FieldLabel>
                   <Input
                     id="fullname"
+                    name="fullname"
                     type="text"
                     placeholder="Contoh: Budi Santoso"
                     required
@@ -87,6 +135,7 @@ export default function PendaftaranForm() {
                     </FieldLabel>
                     <Input
                       id="nik"
+                      name="nik"
                       type="text"
                       maxLength={16}
                       placeholder="3271012345678901"
@@ -100,6 +149,7 @@ export default function PendaftaranForm() {
                     </FieldLabel>
                     <Input
                       id="phone"
+                      name="phone"
                       type="tel"
                       placeholder="081234567890"
                       required
@@ -115,6 +165,7 @@ export default function PendaftaranForm() {
                   </FieldLabel>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="nama@email.com"
                     required
@@ -134,6 +185,7 @@ export default function PendaftaranForm() {
                       </FieldLabel>
                       <Input
                         id="password"
+                        name="password"
                         type="password"
                         required
                         className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground focus:border-primary"
@@ -145,6 +197,7 @@ export default function PendaftaranForm() {
                       </FieldLabel>
                       <Input
                         id="confirm-password"
+                        name="confirm-password"
                         type="password"
                         required
                         className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground focus:border-primary"
@@ -153,13 +206,26 @@ export default function PendaftaranForm() {
                   </div>
                 </Field>
 
+                {/* Pesan Error / Sukses */}
+                {error && (
+                  <div className="rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 border border-red-500/20">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="rounded-md bg-green-500/10 px-3 py-2 text-xs font-medium text-green-600 dark:text-green-400 border border-green-500/20">
+                    {success}
+                  </div>
+                )}
+
                 {/* Tombol Submit */}
                 <Field className="pt-1">
                   <Button
                     type="submit"
-                    className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
+                    disabled={isLoading}
+                    className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    Daftar Akun Sertifikasi
+                    {isLoading ? "Memproses..." : "Daftar Akun Sertifikasi"}
                   </Button>
                 </Field>
 

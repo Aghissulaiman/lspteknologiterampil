@@ -1,6 +1,6 @@
-import Footer from "@/components/LandingPage/Landing/Footer";
-import Navbar from "@/components/LandingPage/Navbar";
-import PersyaratanSkema from "@/components/LandingPage/skema/persyaratan/PersyaratanSkema";
+import Footer from "@/components/landing/Landing/Footer";
+import Navbar from "@/components/landing/Navbar";
+import PersyaratanSkema from "@/components/landing/skema/persyaratan/PersyaratanSkema";
 
 export default function Persyaratan() {
     return (

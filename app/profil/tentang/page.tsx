@@ -1,7 +1,7 @@
-import AboutHero from "@/components/LandingPage/Profile/Tentang/AboutHero";
-import Navbar from "@/components/LandingPage/Navbar";
-import AboutVisiMisi from "@/components/LandingPage/Profile/Tentang/AboutVisiMisi";
-import Footer from "@/components/LandingPage/Landing/Footer";
+import AboutHero from "@/components/landing/Profile/Tentang/AboutHero";
+import Navbar from "@/components/landing/Navbar";
+import AboutVisiMisi from "@/components/landing/Profile/Tentang/AboutVisiMisi";
+import Footer from "@/components/landing/Landing/Footer";
 
 export const metadata = {
   title: "Tentang LSP | LSP Teknologi Terampil",

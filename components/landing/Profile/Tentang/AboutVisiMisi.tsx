@@ -10,7 +10,7 @@ export default function AboutVisiMisi() {
       desc: "Melaksanakan uji kompetensi yang akuntabel, objektif, serta bebas dari konflik kepentingan dengan mengacu secara konsisten pada Standar Kompetensi Kerja Nasional Indonesia (SKKNI).",
     },
     {
-      title: "Menjadi Pusat Pengembangan Kompetensi Talenta Digital",
+      title: "Menjadi  Pusat Pengembangan Kompetensi Talenta Digital",
       desc: "Menjadi pusat pengembangan kompetensi terkemuka yang melahirkan talenta digital berstandar internasional sesuai dinamika industri masa depan.",
     },
     {

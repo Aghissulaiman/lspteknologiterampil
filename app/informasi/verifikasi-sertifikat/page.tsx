@@ -1,6 +1,6 @@
-import VerifikasiSertifikat from "@/components/LandingPage/informasi/verifikasi-sertifikat/VerifikasiSertifikat";
-import Footer from "@/components/LandingPage/Landing/Footer";
-import Navbar from "@/components/LandingPage/Navbar";
+import VerifikasiSertifikat from "@/components/landing/informasi/verifikasi-sertifikat/VerifikasiSertifikat";
+import Footer from "@/components/landing/Landing/Footer";
+import Navbar from "@/components/landing/Navbar";
 
 export default function VerifikasiSertifikatPage() {
     return (
