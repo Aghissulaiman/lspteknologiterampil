@@ -10,21 +10,21 @@ export default function Hero() {
   const stats = [
     {
       icon: BookOpen,
-      value: "50+",
-      label: "Skema Sertifikasi",
-      description: "Standar kompetensi nasional & internasional",
+      value: "100%",
+      label: "Berbasis SKKNI",
+      description: "Mengacu pada standar kompetensi kerja nasional",
     },
     {
       icon: Users,
       value: "15,000+",
-      label: "Peserta Tersertifikasi",
-      description: "Alumni terbukti kompeten di industri",
+      label: "Alumni Kompeten",
+      description: "Lulus ujian dengan predikat 'Kompeten' (K)",
     },
     {
       icon: Award,
-      value: "98%",
-      label: "Tingkat Kelulusan",
-      description: "Direkomendasikan oleh praktisi",
+      value: "90%",
+      label: "Diserap Industri",
+      description: "Sertifikasi mempermudah langkah karir",
     },
   ];
 

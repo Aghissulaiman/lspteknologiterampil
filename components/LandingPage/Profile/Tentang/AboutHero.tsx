@@ -100,11 +100,11 @@ export default function AboutHero() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-border/50 bg-background/80 p-4">
                     <p className="text-xs font-semibold text-muted-foreground">Total Skema</p>
-                    <p className="mt-1 text-2xl font-bold text-primary">12+</p>
+                    <p className="mt-1 text-2xl font-bold text-primary">5+</p>
                   </div>
                   <div className="rounded-2xl border border-border/50 bg-background/80 p-4">
                     <p className="text-xs font-semibold text-muted-foreground">Asesi Lulus</p>
-                    <p className="mt-1 text-2xl font-bold text-foreground">10.000+</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">......</p>
                   </div>
                 </div>
               </div>

@@ -6,78 +6,31 @@ import { Target, Compass } from "lucide-react";
 export default function AboutVisiMisi() {
   const misiPoints = [
     {
-      title: "Penyelenggaraan Uji Kompetensi Akuntabel & Objektif",
-      desc: "Melaksanakan uji kompetensi yang akuntabel, objektif, serta bebas dari konflik kepentingan dengan mengacu secara konsisten pada Standar Kompetensi Kerja Nasional Indonesia (SKKNI).",
+      id: 1,
+      title: "Menyelenggarakan Asesmen Berkualitas",
+      description: "Melaksanakan proses sertifikasi profesi bidang teknologi yang objektif, transparan, dan terukur dengan mengacu pada Standar Kompetensi Kerja Nasional Indonesia (SKKNI)."
     },
     {
-      title: "Menjadi Pusat Pengembangan Kompetensi Talenta Digital",
-      desc: "Menjadi pusat pengembangan kompetensi terkemuka yang melahirkan talenta digital berstandar internasional sesuai dinamika industri masa depan.",
+      id: 2,
+      title: "Mengembangkan Skema Adaptif",
+      description: "Merancang dan memelihara skema uji kompetensi yang relevan, mutakhir, dan sejalan dengan pesatnya perkembangan industri digital masa kini."
     },
     {
-      title: "Penjaminan Mutu Berkelanjutan Asesor & TUK",
-      desc: "Menyelenggarakan penjaminan mutu yang berkelanjutan bagi Asesor dan Tempat Uji Kompetensi (TUK) guna menjaga integritas, objektivitas, dan standar kualitas uji kompetensi.",
+      id: 3,
+      title: "Menjamin Mutu Infrastruktur & Penguji",
+      description: "Menyediakan tenaga Asesor berlisensi BNSP yang profesional serta Tempat Uji Kompetensi (TUK) dengan fasilitas teknologi berstandar tinggi."
     },
     {
-      title: "Kemitraan Berkelanjutan dengan Ekosistem DUDI",
-      desc: "Membangun kemitraan berkelanjutan dengan SMK, perguruan tinggi, asosiasi profesi, dan dunia usaha untuk mempercepat penyerapan tenaga kerja tersertifikasi.",
-    },
+      id: 4,
+      title: "Membangun Kemitraan Strategis",
+      description: "Memperluas sinergi dengan institusi pendidikan dan Dunia Usaha Dunia Industri (DUDI) untuk memastikan talenta digital tersertifikasi mendapatkan pengakuan penuh dan mudah diserap oleh pasar kerja."
+    }
   ];
 
   return (
     <section className="py-16 lg:py-24 bg-background border-b border-border/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {/* Section Header */}
-        <div className="mx-auto max-w-3xl text-center mb-16 space-y-4">
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Visi & Misi Operasional
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Pilar utama dan komitmen berkelanjutan LSP Teknologi Terampil dalam mencetak sumber daya manusia unggul yang diakui secara nasional.
-          </p>
-        </div>
-
-        {/* 1. SECTION VISI (Dengan Layout Gambar & Teks Berbobot) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-20">
-
-          {/* Gambar Visi */}
-          <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="relative mx-auto max-w-md lg:max-w-none rounded-3xl overflow-hidden border border-border bg-card shadow-xl group">
-              <div className="relative h-[320px] sm:h-[400px] w-full">
-                <Image
-                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
-                  alt="Suasana Pengujian Sertifikasi Profesi"
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              </div>
-
-              {/* Badge Overlay */}
-              <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-background/90 backdrop-blur-md border border-border/80 shadow-lg">
-                <p className="text-xs font-semibold text-primary uppercase tracking-wider">
-                  Target Capaian 2030
-                </p>
-                <p className="text-sm font-bold text-foreground mt-0.5">
-                  Standardisasi SDM TIK Berdaya Saing Global
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Konten Teks Visi */}
-          <div className="lg:col-span-7 order-1 lg:order-2 space-y-5">
-            <div className="inline-flex items-center gap-2 text-primary font-bold text-lg">
-              <Compass className="h-6 w-6" />
-              <span>VISI UTAMA</span>
-            </div>
-
-            <h3 className="text-2xl sm:text-3xl font-bold text-foreground leading-snug">
-              Menjadi Lembaga Sertifikasi Profesi Pilihan Utama yang Terpercaya dan Diakui Nasional dalam Penjaminan Mutu Tenaga Kerja TIK.
-            </h3>
-          </div>
-
-        </div>
 
         {/* 2. SECTION MISI (Layout List Interaktif + Gambar Pendukung) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pt-8 border-t border-border/60">

@@ -14,9 +14,9 @@ export default function About() {
 
   const highlights = [
     "Lisensi Resmi dari Badan Nasional Sertifikasi Profesi (BNSP)",
-    "Asesor Teruji dan Terverifikasi dari Praktisi Industri",
+    "Asesor Teruji, Profesional, dan Merupakan Praktisi Industri Aktif",
     "Fasilitas Tempat Uji Kompetensi (TUK) Berstandar Nasional",
-    "Materi Uji Selalu Diperbarui Sesuai Tren AI & Digital Marketing",
+    "Materi Asesmen Relevan untuk Skema Web, Digital Marketing & Jaringan",
   ];
 
   return (

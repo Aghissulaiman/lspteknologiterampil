@@ -6,42 +6,44 @@ import {
   Video, 
   TrendingUp, 
   Users, 
-  ClipboardList 
+  ClipboardList,
+  ShieldCheck
 } from "lucide-react";
 
 export default function Features() {
   const features = [
     {
       icon: BookOpen,
-      title: "Materi Terstruktur",
+      title: "Standar SKKNI",
       description:
-        "Modul pembelajaran disusun secara sistematis mulai dari dasar hingga tingkat lanjutan.",
+        "Materi uji disusun mengacu pada Standar Kompetensi Kerja Nasional Indonesia terbaru.",
     },
     {
       icon: Users,
-      title: "Instruktur Berpengalaman",
+      title: "Asesor Berlisensi BNSP",
       description:
-        "Dibimbing oleh praktisi profesional yang memiliki pengalaman di bidangnya.",
+        "Asesmen dilakukan secara objektif oleh praktisi industri yang telah tersertifikasi sebagai penguji.",
     },
     {
-      icon: Video,
-      title: "Pra-Uji & Workshop",
-      description: "Sesi pembekalan langsung dari asesor berpengalaman.",
+      icon: Video, // Cocok untuk skema IT/Digital (bisa juga diganti Monitor)
+      title: "Fasilitas TUK Memadai",
+      description:
+        "Tempat Uji Kompetensi dilengkapi perangkat keras dan lunak berstandar industri.",
     },
     {
       icon: TrendingUp,
-      title: "Standar Industri",
-      description: "Materi uji selalu diperbarui sesuai tren teknologi.",
+      title: "Pengakuan Industri",
+      description: "Sertifikat berlogo Garuda yang langsung meningkatkan nilai jual Anda di dunia kerja.",
     },
     {
-      icon: Users,
-      title: "Dukungan Asesor",
-      description: "Konsultasi dan bimbingan selama proses sertifikasi.",
+      icon: ShieldCheck, // Menggantikan Users yang duplikat di kodemu
+      title: "Pra-Asesmen Terarah",
+      description: "Sesi konsultasi awal untuk memastikan kesiapan dokumen dan kelayakan portofolio Anda.",
     },
     {
       icon: ClipboardList,
-      title: "Rencana Asesmen",
-      description: "Jadwal dan alur ujian terstruktur secara transparan.",
+      title: "Proses Transparan",
+      description: "Alur pendaftaran, jadwal ujian praktik, hingga penerbitan sertifikat yang jelas dan terstruktur.",
     },
   ];
 
