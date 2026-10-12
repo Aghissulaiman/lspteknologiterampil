@@ -7,7 +7,7 @@ import Navbar from "@/components/LandingPage/Navbar";
 // import Schemes from "@/components/LandingPage/Landing/Schemes";
 import Workflow from "@/components/LandingPage/Landing/Workflow";
 
-export default function Home() {
+export default function home() {
   return (
     <>
       <Navbar />

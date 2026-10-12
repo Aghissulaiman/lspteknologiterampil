@@ -20,7 +20,7 @@ export default function MasukForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Tambahkan logika autentikasi/backend di sini jika diperlukan
-    router.push("/Home/program");
+    router.push("/home/program");
   };
 
   return (

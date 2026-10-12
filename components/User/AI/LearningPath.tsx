@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrainCircuit,
   Bot,
@@ -61,6 +61,34 @@ const steps = [
 ];
 
 export default function LearningPath() {
+  const [visibleSteps, setVisibleSteps] = useState<number[]>([]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          const index = Number(
+            (entry.target as HTMLElement).dataset.learningStep,
+          );
+          setVisibleSteps((current) =>
+            current.includes(index) ? current : [...current, index],
+          );
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.2 },
+    );
+
+    const stepElements = document.querySelectorAll<HTMLElement>(
+      "[data-learning-step]",
+    );
+    stepElements.forEach((element) => observer.observe(element));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="workflow"
@@ -97,7 +125,13 @@ export default function LearningPath() {
               return (
                 <div
                   key={index}
-                  className="relative flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-0"
+                  data-learning-step={index}
+                  className={`relative flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-0 transform-gpu transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
+                    visibleSteps.includes(index)
+                      ? "translate-y-0 opacity-100"
+                      : "translate-y-8 opacity-0"
+                  }`}
+                  style={{ transitionDelay: `${index * 140}ms` }}
                 >
                   {/* Timeline Node Center Dot (Desktop Only) */}
                   <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-7 w-7 rounded-full bg-background border-2 border-primary shadow-md items-center justify-center z-20">
