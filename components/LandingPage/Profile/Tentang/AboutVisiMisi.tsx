@@ -57,7 +57,7 @@ export default function AboutVisiMisi() {
                         {item.title}
                       </h4>
                       <p className="text-muted-foreground text-base leading-relaxed">
-                        {item.desc}
+                        {item.description}
                       </p>
                     </div>
                   </div>

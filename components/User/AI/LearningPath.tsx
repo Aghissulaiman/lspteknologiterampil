@@ -62,6 +62,16 @@ const steps = [
 
 export default function LearningPath() {
   const [visibleSteps, setVisibleSteps] = useState<number[]>([]);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const totalLessons = steps.reduce((total, step) => total + step.materi.length, 0);
+  const progressPercent = Math.round((completedLessons.length / totalLessons) * 100);
+
+  const toggleLesson = (lesson: string) => {
+    setCompletedLessons((current) => current.includes(lesson)
+      ? current.filter((completedLesson) => completedLesson !== lesson)
+      : [...current, lesson]
+    );
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -91,7 +101,7 @@ export default function LearningPath() {
 
   return (
     <section
-      id="workflow"
+      id="learning-path"
       className="py-16 sm:py-20 bg-background text-foreground transition-colors duration-300 overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,6 +119,26 @@ export default function LearningPath() {
             Artificial Intelligence hingga mampu mengimplementasikannya dalam
             dunia kerja.
           </p>
+        </div>
+
+        <div className="mx-auto mb-12 max-w-3xl rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Progres belajar</p>
+              <p className="mt-1 text-xs text-muted-foreground">Tandai materi yang sudah Anda pelajari.</p>
+            </div>
+            <p className="text-sm font-semibold text-primary">{completedLessons.length} dari {totalLessons} materi · {progressPercent}%</p>
+          </div>
+          <div
+            className="mt-4 h-2 overflow-hidden rounded-full bg-muted"
+            role="progressbar"
+            aria-label="Progres materi pembelajaran"
+            aria-valuemin={0}
+            aria-valuemax={totalLessons}
+            aria-valuenow={completedLessons.length}
+          >
+            <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+          </div>
         </div>
 
         {/* Timeline Section */}
@@ -171,14 +201,24 @@ export default function LearningPath() {
 
                       {/* Materi List */}
                       <div className="space-y-2 pt-2 border-t border-border/50">
-                        {step.materi.map((item, i) => (
-                          <div key={i} className="flex items-center gap-2.5">
-                            <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                            <span className="text-xs sm:text-sm font-medium text-foreground">
-                              {item}
-                            </span>
-                          </div>
-                        ))}
+                        {step.materi.map((item) => {
+                          const isCompleted = completedLessons.includes(item);
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => toggleLesson(item)}
+                              aria-pressed={isCompleted}
+                              className="flex w-full items-center gap-2.5 rounded-md py-1 text-left transition-colors hover:bg-accent/60"
+                            >
+                              <CheckCircle2 className={`h-4 w-4 shrink-0 ${isCompleted ? "text-primary" : "text-muted-foreground/50"}`} />
+                              <span className={`text-xs sm:text-sm font-medium ${isCompleted ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                                {item}
+                              </span>
+                              <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">{isCompleted ? "Selesai" : "Tandai selesai"}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
