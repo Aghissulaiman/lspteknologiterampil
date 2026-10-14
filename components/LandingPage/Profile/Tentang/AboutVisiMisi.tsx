@@ -1,4 +1,3 @@
-
 import React from "react";
 import Image from "next/image";
 import { Target, Compass } from "lucide-react";
@@ -57,7 +56,7 @@ export default function AboutVisiMisi() {
                         {item.title}
                       </h4>
                       <p className="text-muted-foreground text-base leading-relaxed">
-                        {item.desc}
+                        {item.description}
                       </p>
                     </div>
                   </div>
