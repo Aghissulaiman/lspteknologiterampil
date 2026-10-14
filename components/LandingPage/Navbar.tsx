@@ -95,9 +95,7 @@ export default function Navbar() {
       title: "Informasi",
       href: "#",
       children: [
-        { name: "Berita & Kegiatan", href: "/informasi/berita" },
         { name: "Cek Pemegang Sertifikat", href: "/informasi/verifikasi-sertifikat" },
-        { name: "FAQ & Bantuan", href: "/informasi/faq" },
       ],
     },
     {

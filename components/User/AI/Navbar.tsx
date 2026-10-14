@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { getDemoLoginState, setDemoLoginState, subscribeToDemoLoginState } from "@/lib/demo-auth";
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -32,9 +33,18 @@ const searchableItems = [
   { title: "AI Productivity & Tools", href: "/materi#productivity", category: "Modul", type: "page" },
 ];
 
+const initialNotifications = [
+  { title: "Materi baru tersedia", detail: "Modul AI Productivity sudah dapat dipelajari.", time: "10 menit lalu", unread: true },
+  { title: "Jadwal webinar", detail: "Webinar berikutnya dimulai Jumat pukul 09.00.", time: "2 jam lalu", unread: true },
+  { title: "Progres pembelajaran", detail: "Anda telah menyelesaikan satu materi baru.", time: "Kemarin", unread: true },
+];
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState(initialNotifications);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const mounted = useIsMounted();
   const router = useRouter();
@@ -44,8 +54,11 @@ export default function Navbar() {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Simulasi login status
-  const isLoggedIn = true;
+  useEffect(() => {
+    const syncLoginState = () => setIsLoggedIn(getDemoLoginState());
+    syncLoginState();
+    return subscribeToDemoLoginState(syncLoginState);
+  }, []);
 
   const activeTheme = mounted ? (resolvedTheme || theme) : "light";
   const isDarkTheme = activeTheme === "dark";
@@ -122,8 +135,24 @@ export default function Navbar() {
     }
     setIsOpen(false);
     setIsProfileOpen(false);
+    setIsNotificationsOpen(false);
     setIsSearchFocused(false);
   };
+
+  const handleLogout = () => {
+    setDemoLoginState(false);
+    setIsProfileOpen(false);
+    setIsOpen(false);
+    setIsNotificationsOpen(false);
+  };
+
+  const markNotificationRead = (index: number) => {
+    setNotifications((current) => current.map((notification, itemIndex) =>
+      itemIndex === index ? { ...notification, unread: false } : notification
+    ));
+  };
+
+  const unreadCount = notifications.filter((notification) => notification.unread).length;
 
   const handleSearchResultSelect = (item: typeof searchableItems[0]) => {
     setIsSearchFocused(false);
@@ -300,14 +329,39 @@ export default function Navbar() {
           <Button
             variant="outline"
             size="icon"
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
             className="h-9 w-9 cursor-pointer rounded-md border border-input bg-background text-foreground transition-colors hover:bg-accent relative"
             aria-label="Notifikasi"
+            aria-expanded={isNotificationsOpen}
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-red-500 text-[8px] font-bold text-white flex items-center justify-center">
-              3
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 h-3.5 min-w-3.5 rounded-full bg-red-500 px-0.5 text-[8px] font-bold text-white flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
           </Button>
+
+          {isNotificationsOpen && (
+            <div className="absolute right-20 top-16 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-xl z-50" role="region" aria-label="Daftar notifikasi">
+              <div className="border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">Notifikasi</p>
+                <p className="text-xs text-muted-foreground">{unreadCount} notifikasi belum dibaca</p>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.map((notification, index) => (
+                  <button key={notification.title} onClick={() => markNotificationRead(index)} className="flex w-full gap-3 border-b border-border/60 px-4 py-3 text-left last:border-0 hover:bg-accent">
+                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.unread ? "bg-primary" : "bg-transparent"}`} />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium text-foreground">{notification.title}</span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">{notification.detail}</span>
+                      <span className="mt-1 block text-[10px] text-muted-foreground">{notification.time}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Profile Dropdown */}
           {isLoggedIn ? (
@@ -347,7 +401,7 @@ export default function Navbar() {
                   </Link>
                   <button
                     className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    onClick={() => setIsProfileOpen(false)}
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
                     Keluar
@@ -357,7 +411,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link
-              href="/Masuk"
+              href="/auth/masuk"
               className="inline-flex h-9 items-center justify-center rounded-md px-5 text-xs font-semibold shadow-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
               Masuk
@@ -453,6 +507,23 @@ export default function Navbar() {
             })}
           </div>
 
+          <div className="border-t border-border pt-3">
+            <Button variant="outline" className="w-full justify-between" onClick={() => setIsNotificationsOpen(!isNotificationsOpen)} aria-expanded={isNotificationsOpen}>
+              <span className="flex items-center gap-2"><Bell className="h-4 w-4" /> Notifikasi</span>
+              {unreadCount > 0 && <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">{unreadCount}</span>}
+            </Button>
+            {isNotificationsOpen && (
+              <div className="mt-2 overflow-hidden rounded-lg border border-border bg-background" role="region" aria-label="Daftar notifikasi">
+                {notifications.map((notification, index) => (
+                  <button key={notification.title} onClick={() => markNotificationRead(index)} className="flex w-full gap-2 border-b border-border/60 px-3 py-2.5 text-left last:border-0 hover:bg-accent">
+                    <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${notification.unread ? "bg-primary" : "bg-transparent"}`} />
+                    <span><span className="block text-xs font-medium">{notification.title}</span><span className="block text-[11px] text-muted-foreground">{notification.detail}</span><span className="block text-[10px] text-muted-foreground">{notification.time}</span></span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="border-t border-border pt-3 space-y-2">
             {isLoggedIn ? (
               <>
@@ -483,7 +554,7 @@ export default function Navbar() {
                 </Link>
                 <button
                   className="flex items-center gap-2 py-2 text-sm text-red-600 hover:text-red-700 transition-colors w-full"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
                   Keluar
@@ -491,7 +562,7 @@ export default function Navbar() {
               </>
             ) : (
               <Link
-                href="/Masuk"
+                href="/auth/masuk"
                 onClick={() => setIsOpen(false)}
                 className="flex w-full h-9 items-center justify-center rounded-md text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
