@@ -10,6 +10,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 1,
     },
+    {
+      url: `${baseUrl}/informasi/kegiatan`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     // Kalau ada halaman lain, tinggal tambahkan di sini:
     // {
     //   url: `${baseUrl}/about`,

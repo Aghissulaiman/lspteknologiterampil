@@ -28,7 +28,7 @@ const searchableItems = [
   { title: "Alur Pembelajaran", href: "#learning-path", category: "Section", type: "scroll" },
   { title: "Materi Kelas", href: "/materi", category: "Halaman", type: "page" },
   { title: "Proyek Akhir", href: "/proyek", category: "Halaman", type: "page" },
-  { title: "Kegiatan & Webinar", href: "/kegiatan", category: "Halaman", type: "page" },
+  { title: "Kegiatan & Webinar", href: "/home/kegiatan", category: "Halaman", type: "page" },
   { title: "Fundamental AI & Etika", href: "/materi#fundamental", category: "Modul", type: "page" },
   { title: "Prompt Engineering ChatGPT", href: "/materi#prompt", category: "Modul", type: "page" },
   { title: "AI Productivity & Tools", href: "/materi#productivity", category: "Modul", type: "page" },
