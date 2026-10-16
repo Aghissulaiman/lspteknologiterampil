@@ -20,6 +20,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Backend akun dan folder
+
+Pendaftaran dan masuk memakai API server di `/api/auth/register` dan `/api/auth/login`. Sesi disimpan sebagai cookie HTTP-only selama tujuh hari. Keluar memakai `/api/auth/logout`, dan `/api/auth/me` mengembalikan akun aktif.
+
+Folder memiliki API CRUD bertingkat di `/api/folders` dan `/api/folders/[folderId]`. Semua operasi folder memerlukan sesi; pengguna hanya dapat membaca dan mengubah folder miliknya. Folder induk tidak bisa dihapus selama masih mempunyai subfolder.
+
+Untuk pengembangan lokal, akun dan metadata folder disimpan di `data/lspteknologiterampil.json`. Atur `LSP_DATA_FILE` untuk mengganti lokasi file, dan atur `AUTH_SECRET` ke nilai acak minimal 32 karakter sebelum menjalankan di production. Penyimpanan file ini cocok untuk satu proses server lokal; deployment multi-instance/serverless perlu mengganti adapter penyimpanan ini dengan database persisten bersama. API folder saat ini mengelola struktur folder saja, belum mengunggah atau menyimpan file.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

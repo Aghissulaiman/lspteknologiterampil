@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,6 +15,44 @@ import {
 import { Input } from "@/components/ui/input";
 
 export default function PendaftaranForm() {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    const formData = new FormData(event.currentTarget);
+    const password = String(formData.get("password") ?? "");
+    if (password !== formData.get("confirmPassword")) {
+      setError("Konfirmasi kata sandi tidak sama.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.get("fullName"),
+          nik: formData.get("nik"),
+          phone: formData.get("phone"),
+          email: formData.get("email"),
+          password,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Pendaftaran tidak berhasil.");
+      router.push("/home/program");
+      router.refresh();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div 
       className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden" 
@@ -40,7 +79,7 @@ export default function PendaftaranForm() {
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleSubmit}
             >
               <FieldGroup className="gap-2.5">
                 {/* Header Branding LSP */}
@@ -72,9 +111,11 @@ export default function PendaftaranForm() {
                   </FieldLabel>
                   <Input
                     id="fullname"
+                    name="fullName"
                     type="text"
                     placeholder="Contoh: Budi Santoso"
                     required
+                    autoComplete="name"
                     className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                 </Field>
@@ -87,8 +128,10 @@ export default function PendaftaranForm() {
                     </FieldLabel>
                     <Input
                       id="nik"
+                      name="nik"
                       type="text"
                       maxLength={16}
+                      inputMode="numeric"
                       placeholder="3271012345678901"
                       required
                       className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground placeholder:text-muted-foreground focus:border-primary"
@@ -100,9 +143,11 @@ export default function PendaftaranForm() {
                     </FieldLabel>
                     <Input
                       id="phone"
+                      name="phone"
                       type="tel"
                       placeholder="081234567890"
                       required
+                      autoComplete="tel"
                       className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground placeholder:text-muted-foreground focus:border-primary"
                     />
                   </Field>
@@ -115,9 +160,11 @@ export default function PendaftaranForm() {
                   </FieldLabel>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="nama@email.com"
                     required
+                    autoComplete="email"
                     className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground placeholder:text-muted-foreground focus:border-primary"
                   />
                   <FieldDescription className="text-[10px] leading-tight text-muted-foreground">
@@ -134,8 +181,11 @@ export default function PendaftaranForm() {
                       </FieldLabel>
                       <Input
                         id="password"
+                        name="password"
                         type="password"
                         required
+                        minLength={8}
+                        autoComplete="new-password"
                         className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground focus:border-primary"
                       />
                     </Field>
@@ -145,21 +195,27 @@ export default function PendaftaranForm() {
                       </FieldLabel>
                       <Input
                         id="confirm-password"
+                        name="confirmPassword"
                         type="password"
                         required
+                        minLength={8}
+                        autoComplete="new-password"
                         className="h-8 text-xs bg-white/40 dark:bg-background/50 border-white/60 dark:border-input text-foreground focus:border-primary"
                       />
                     </Field>
                   </div>
                 </Field>
 
+                {error && <p role="alert" className="text-xs font-medium text-red-600">{error}</p>}
+
                 {/* Tombol Submit */}
                 <Field className="pt-1">
                   <Button
                     type="submit"
+                    disabled={isSubmitting}
                     className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
                   >
-                    Daftar Akun Sertifikasi
+                    {isSubmitting ? "Mendaftarkan akun..." : "Daftar Akun Sertifikasi"}
                   </Button>
                 </Field>
 

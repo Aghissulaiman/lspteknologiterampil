@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,16 +13,33 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { setDemoLoginState } from "@/lib/demo-auth";
 
 export default function MasukForm() {
   const router = useRouter();
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Tambahkan logika autentikasi/backend di sini jika diperlukan
-    setDemoLoginState(true);
-    router.push("/home/program");
+    setError("");
+    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.get("email"), password: formData.get("password") }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Tidak dapat masuk.");
+      router.push("/home/program");
+      router.refresh();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -115,20 +132,23 @@ export default function MasukForm() {
                   />
                 </Field>
 
+                {error && <p role="alert" className="text-xs font-medium text-red-600">{error}</p>}
+
                 {/* Tombol Submit Navigasi */}
                 <Field className="pt-2">
                   <Button
                     type="submit"
+                    disabled={isSubmitting}
                     className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
                   >
-                    Masuk Sekarang
+                    {isSubmitting ? "Memeriksa akun..." : "Masuk Sekarang"}
                   </Button>
                 </Field>
 
                 <FieldDescription className="text-center text-xs pt-1 text-muted-foreground">
                   Belum memiliki akun Asesi?{" "}
                   <Link
-                    href="/pendaftaran"
+                    href="/auth/pendaftaran"
                     className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
                   >
                     Daftar Akun Baru

@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { getDemoLoginState, setDemoLoginState, subscribeToDemoLoginState } from "@/lib/demo-auth";
+
+type SessionUser = { id: string; fullName: string; email: string };
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -44,7 +45,8 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const { theme, setTheme, resolvedTheme } = useTheme();
   const mounted = useIsMounted();
   const router = useRouter();
@@ -55,9 +57,20 @@ export default function Navbar() {
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const syncLoginState = () => setIsLoggedIn(getDemoLoginState());
-    syncLoginState();
-    return subscribeToDemoLoginState(syncLoginState);
+    let isActive = true;
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() : { user: null })
+      .then((result) => {
+        if (!isActive) return;
+        setSessionUser(result.user ?? null);
+        setIsLoggedIn(Boolean(result.user));
+      })
+      .catch(() => {
+        if (!isActive) return;
+        setSessionUser(null);
+        setIsLoggedIn(false);
+      });
+    return () => { isActive = false; };
   }, []);
 
   const activeTheme = mounted ? (resolvedTheme || theme) : "light";
@@ -139,11 +152,20 @@ export default function Navbar() {
     setIsSearchFocused(false);
   };
 
-  const handleLogout = () => {
-    setDemoLoginState(false);
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) return;
+    } catch {
+      return;
+    }
+    setSessionUser(null);
+    setIsLoggedIn(false);
     setIsProfileOpen(false);
     setIsOpen(false);
     setIsNotificationsOpen(false);
+    router.replace("/auth/masuk");
+    router.refresh();
   };
 
   const markNotificationRead = (index: number) => {
@@ -380,8 +402,8 @@ export default function Navbar() {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-background shadow-lg py-1 z-50">
                   <div className="px-4 py-3 border-b border-border">
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">john@email.com</p>
+                    <p className="text-sm font-medium text-foreground">{sessionUser?.fullName}</p>
+                    <p className="text-xs text-muted-foreground">{sessionUser?.email}</p>
                   </div>
                   <Link
                     href="/profile"
@@ -532,8 +554,8 @@ export default function Navbar() {
                     <User className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">john@email.com</p>
+                    <p className="text-sm font-medium text-foreground">{sessionUser?.fullName ?? "Akun Asesi"}</p>
+                    <p className="text-xs text-muted-foreground">{sessionUser?.email ?? ""}</p>
                   </div>
                 </div>
                 <Link
