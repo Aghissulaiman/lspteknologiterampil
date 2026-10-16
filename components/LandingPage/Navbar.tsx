@@ -79,7 +79,7 @@ export default function Navbar() {
       children: [
         { name: "Tentang LSP", href: "/profil/tentang" },
         { name: "Struktur Organisasi", href: "/profil/struktur" },
-        { name: "Legalitas & Lisensi", href: "/profil/legalitas" },
+        // { name: "Legalitas & Lisensi", href: "/profil/legalitas" },
       ],
     },
     {
@@ -87,8 +87,8 @@ export default function Navbar() {
       href: "#",
       children: [
         { name: "Skema Sertifikasi", href: "/skema" },
-        { name: "Tempat Uji Kompetensi (TUK)", href: "/skema/tuk" },
-        { name: "Persyaratan Asesi", href: "/skema/persyaratan" },
+        // { name: "Tempat Uji Kompetensi (TUK)", href: "/skema/tuk" },
+        // { name: "Persyaratan Asesi", href: "/skema/persyaratan" },
       ],
     },
     {
