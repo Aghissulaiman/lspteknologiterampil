@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/server-auth";
-import { findFoldersByOwner, newId, toPublicFolder, updateStore } from "@/lib/server-store";
+import { createFolder, findFoldersByOwner, toPublicFolder } from "@/lib/server-store";
 
 export const runtime = "nodejs";
 
@@ -42,19 +42,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await updateStore((store) => {
-      if (parentId && !store.folders.some((folder) => folder.id === parentId && folder.ownerId === user.id)) {
-        return { error: "parent-not-found" as const };
-      }
-      if (store.folders.some((folder) => folder.ownerId === user.id && folder.parentId === parentId && folder.name.toLowerCase() === name.toLowerCase())) {
-        return { error: "duplicate" as const };
-      }
-
-      const timestamp = new Date().toISOString();
-      const folder = { id: newId(), ownerId: user.id, name, parentId, createdAt: timestamp, updatedAt: timestamp };
-      store.folders.push(folder);
-      return { folder };
-    });
+    const result = await createFolder(user.id, name, parentId as string | null);
 
     if ("error" in result) {
       return Response.json({ error: result.error === "duplicate" ? "Folder dengan nama itu sudah ada di lokasi ini." : "Folder induk tidak ditemukan." }, { status: result.error === "duplicate" ? 409 : 404 });

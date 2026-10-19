@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/server-auth";
-import { toPublicFolder, updateStore } from "@/lib/server-store";
+import { deleteFolder, toPublicFolder, updateFolder } from "@/lib/server-store";
 
 export const runtime = "nodejs";
 
@@ -31,31 +31,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   try {
-    const result = await updateStore((store) => {
-      const folder = store.folders.find((item) => item.id === folderId && item.ownerId === user.id);
-      if (!folder) return { error: "not-found" as const };
-
-      const nextParentId = parentId === undefined ? folder.parentId : parentId === "" ? null : parentId as string | null;
-      if (nextParentId) {
-        const newParent = store.folders.find((item) => item.id === nextParentId && item.ownerId === user.id);
-        if (!newParent) return { error: "parent-not-found" as const };
-        let ancestor: typeof newParent | undefined = newParent;
-        while (ancestor) {
-          if (ancestor.id === folder.id) return { error: "cycle" as const };
-          ancestor = ancestor.parentId ? store.folders.find((item) => item.id === ancestor?.parentId && item.ownerId === user.id) : undefined;
-        }
-      }
-
-      const nextName = name ?? folder.name;
-      if (store.folders.some((item) => item.id !== folder.id && item.ownerId === user.id && item.parentId === nextParentId && item.name.toLowerCase() === nextName.toLowerCase())) {
-        return { error: "duplicate" as const };
-      }
-
-      folder.name = nextName;
-      folder.parentId = nextParentId;
-      folder.updatedAt = new Date().toISOString();
-      return { folder };
-    });
+    const normalizedParentId = parentId === "" ? null : parentId as string | null | undefined;
+    const result = await updateFolder(user.id, folderId, name, normalizedParentId);
 
     if ("error" in result && result.error === "not-found") {
       return Response.json({ error: "Folder tidak ditemukan." }, { status: 404 });
@@ -81,13 +58,7 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   const { folderId } = await params;
 
   try {
-    const result = await updateStore((store) => {
-      const index = store.folders.findIndex((folder) => folder.id === folderId && folder.ownerId === user.id);
-      if (index === -1) return "not-found" as const;
-      if (store.folders.some((folder) => folder.ownerId === user.id && folder.parentId === folderId)) return "not-empty" as const;
-      store.folders.splice(index, 1);
-      return "deleted" as const;
-    });
+    const result = await deleteFolder(user.id, folderId);
 
     if (result === "not-found") return Response.json({ error: "Folder tidak ditemukan." }, { status: 404 });
     if (result === "not-empty") return Response.json({ error: "Kosongkan atau pindahkan subfolder sebelum menghapus folder ini." }, { status: 409 });

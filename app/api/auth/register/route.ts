@@ -1,5 +1,5 @@
 import { setSessionCookie } from "@/lib/server-auth";
-import { hashPassword, newId, toPublicUser, updateStore, type UserRecord } from "@/lib/server-store";
+import { createUser, hashPassword, newId, toPublicUser, type UserRecord } from "@/lib/server-store";
 
 export const runtime = "nodejs";
 
@@ -47,21 +47,16 @@ export async function POST(request: Request) {
   };
 
   try {
-    const result = await updateStore((store) => {
-      if (store.users.some((item) => item.email === email)) return "email-exists" as const;
-      if (store.users.some((item) => item.nik === nik)) return "nik-exists" as const;
-      store.users.push(user);
-      return "created" as const;
-    });
+    const result = await createUser(user);
 
-    if (result === "email-exists") {
+    if ("error" in result && result.error === "email-exists") {
       return Response.json({ error: "Email sudah terdaftar." }, { status: 409 });
     }
-    if (result === "nik-exists") {
+    if ("error" in result && result.error === "nik-exists") {
       return Response.json({ error: "NIK sudah terdaftar." }, { status: 409 });
     }
 
-    const response = Response.json({ user: toPublicUser(user) }, { status: 201 });
+    const response = Response.json({ user: toPublicUser(result.user) }, { status: 201 });
     return setSessionCookie(response, user.id);
   } catch {
     return Response.json({ error: "Pendaftaran belum dapat diproses. Coba lagi." }, { status: 500 });
