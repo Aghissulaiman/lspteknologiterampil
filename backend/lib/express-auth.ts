@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Request, Response } from "express";
+import type { Request, RequestHandler, Response } from "express";
 import { findUserById, toPublicUser } from "./server-store";
+import type { UserRole } from "./server-store";
 
 const COOKIE_NAME = "lsp_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -14,6 +15,7 @@ function cookieOptions() {
 }
 
 type SessionPayload = { sub: string; exp: number };
+export type AuthenticatedUser = { id: string; fullName: string; email: string; role: UserRole };
 
 function getSessionSecret() {
   const configuredSecret = process.env.AUTH_SECRET;
@@ -90,4 +92,28 @@ export async function getCurrentUser(request: Request) {
 
   const user = await findUserById(session.sub);
   return user ? toPublicUser(user) : null;
+}
+
+export const authenticate: RequestHandler = async (request, response, next) => {
+  try {
+    const user = await getCurrentUser(request);
+    if (!user) return response.status(401).json({ error: "Silakan masuk terlebih dahulu." });
+    response.locals.authUser = user;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export function requireRole(...roles: UserRole[]): RequestHandler {
+  return (_request, response, next) => {
+    const user = response.locals.authUser as AuthenticatedUser | undefined;
+    if (!user) return response.status(401).json({ error: "Silakan masuk terlebih dahulu." });
+    if (!roles.includes(user.role)) return response.status(403).json({ error: "Anda tidak memiliki akses." });
+    next();
+  };
+}
+
+export function authUser(response: Response) {
+  return response.locals.authUser as AuthenticatedUser;
 }

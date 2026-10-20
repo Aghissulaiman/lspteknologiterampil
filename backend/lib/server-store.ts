@@ -12,7 +12,10 @@ export type UserRecord = {
   phone: string;
   passwordHash: string;
   createdAt: string;
+  role: UserRole;
 };
+
+export type UserRole = "participant" | "admin_lsp" | "assessor";
 
 export type FolderRecord = {
   id: string;
@@ -31,6 +34,7 @@ type UserRow = {
   phone: string;
   password_hash: string;
   created_at: Date | string;
+  role: UserRole;
 };
 
 type FolderRow = {
@@ -55,6 +59,7 @@ function userRecord(row: UserRow): UserRecord {
     phone: row.phone,
     passwordHash: row.password_hash,
     createdAt: iso(row.created_at),
+    role: row.role,
   };
 }
 
@@ -82,10 +87,10 @@ function isUuid(value: string) {
 export async function createUser(user: UserRecord) {
   try {
     const result = await getPool().query<UserRow>(
-      `INSERT INTO users (id, full_name, email, nik, phone, password_hash, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, full_name, email, nik, phone, password_hash, created_at`,
-      [user.id, user.fullName, user.email, user.nik, user.phone, user.passwordHash, user.createdAt],
+      `INSERT INTO users (id, full_name, email, nik, phone, password_hash, created_at, role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, full_name, email, nik, phone, password_hash, created_at, role`,
+      [user.id, user.fullName, user.email, user.nik, user.phone, user.passwordHash, user.createdAt, user.role],
     );
     return { user: userRecord(result.rows[0]) } as const;
   } catch (error) {
@@ -102,7 +107,7 @@ export async function createUser(user: UserRecord) {
 
 export async function findUserByEmail(email: string) {
   const result = await getPool().query<UserRow>(
-    `SELECT id, full_name, email, nik, phone, password_hash, created_at
+    `SELECT id, full_name, email, nik, phone, password_hash, created_at, role
      FROM users WHERE lower(email) = lower($1) LIMIT 1`,
     [email],
   );
@@ -112,7 +117,7 @@ export async function findUserByEmail(email: string) {
 export async function findUserById(id: string) {
   if (!isUuid(id)) return null;
   const result = await getPool().query<UserRow>(
-    `SELECT id, full_name, email, nik, phone, password_hash, created_at
+    `SELECT id, full_name, email, nik, phone, password_hash, created_at, role
      FROM users WHERE id = $1 LIMIT 1`,
     [id],
   );
@@ -247,7 +252,7 @@ export async function deleteFolder(ownerId: string, folderId: string) {
 }
 
 export function toPublicUser(user: UserRecord) {
-  return { id: user.id, fullName: user.fullName, email: user.email };
+  return { id: user.id, fullName: user.fullName, email: user.email, role: user.role };
 }
 
 export function toPublicFolder(folder: FolderRecord) {

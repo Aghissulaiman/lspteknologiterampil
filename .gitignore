@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/backend/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -22,6 +23,7 @@
 # production
 /build
 /backend/data/
+/backend/storage/private/
 
 # misc
 .DS_Store
