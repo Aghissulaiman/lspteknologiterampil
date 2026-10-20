@@ -1,16 +1,25 @@
 # LSP Teknologi Terampil
 
+## Struktur proyek
+
+```text
+frontend/  Root aplikasi Next.js: app/, komponen, utilitas, dan aset statis
+backend/   Handler API, autentikasi, database, skrip, dan data impor lokal
+```
+
+Aplikasi Next.js berada di `frontend/`, sehingga `frontend/app/` memuat halaman dan route handler penghubung ke implementasi di `backend/api/`. `package.json` di root mengelola workspace dan menyediakan perintah `npm run`; konfigurasi Next.js, file environment, serta `public/` berada di dalam `frontend/`.
+
 ## PostgreSQL
 
 Backend akun dan folder memakai PostgreSQL 15 atau yang lebih baru. Akun menyimpan nama, email, NIK, nomor WhatsApp, hash kata sandi, dan tanggal pendaftaran. Folder menyimpan pemilik, induk, dan tanggal perubahan. Kata sandi tetap di-hash sebelum disimpan.
 
 ### Menjalankan secara lokal
 
-1. Salin `.env.example` menjadi `.env.local`, lalu ubah `AUTH_SECRET` menjadi string acak minimal 32 karakter. `DATABASE_URL` pada contoh terhubung ke PostgreSQL lokal dari Docker Compose.
+1. Salin `frontend/.env.example` menjadi `frontend/.env.local`, lalu ubah `AUTH_SECRET` menjadi string acak minimal 32 karakter. `DATABASE_URL` pada contoh terhubung ke PostgreSQL lokal dari Docker Compose.
 2. Jalankan PostgreSQL:
 
    ```bash
-   docker compose up -d db
+   docker compose -f backend/docker-compose.yml up -d db
    ```
 
 3. Buat tabel dan indeks:
@@ -19,7 +28,7 @@ Backend akun dan folder memakai PostgreSQL 15 atau yang lebih baru. Akun menyimp
    npm run db:setup
    ```
 
-4. Jika ingin memindahkan akun dan folder yang masih ada di `data/lspteknologiterampil.json`, jalankan satu kali:
+4. Jika ingin memindahkan akun dan folder yang masih ada di `backend/data/lspteknologiterampil.json`, jalankan satu kali:
 
    ```bash
    npm run db:import-json

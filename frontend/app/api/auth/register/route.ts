@@ -1,0 +1,2 @@
+export { POST } from "@backend/api/auth/register/route";
+export const runtime = "nodejs";
