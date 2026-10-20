@@ -1,8 +1,6 @@
-import "server-only";
-
 import { randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
-import { getPool, inTransaction } from "@backend/lib/server-db";
+import { getPool, inTransaction } from "./server-db";
 
 const scrypt = promisify(scryptCallback);
 

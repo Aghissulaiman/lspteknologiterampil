@@ -1,5 +1,3 @@
-import "server-only";
-
 import { Pool, type PoolClient } from "pg";
 
 type GlobalWithPostgresPool = typeof globalThis & {

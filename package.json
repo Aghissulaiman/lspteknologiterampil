@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "frontend"
+    "frontend",
+    "backend"
   ],
   "scripts": {
     "dev": "npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
     "build": "npm run build --workspace frontend",
     "start": "npm run start --workspace frontend",
     "lint": "npm run lint --workspace frontend",
+    "start:backend": "npm run start --workspace backend",
     "db:setup": "node backend/scripts/db-setup.mjs",
     "db:import-json": "node backend/scripts/db-import-json.mjs"
   }

@@ -1,9 +1,17 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
-import { findUserById, toPublicUser } from "@backend/lib/server-store";
+import type { Request, Response } from "express";
+import { findUserById, toPublicUser } from "./server-store";
 
 const COOKIE_NAME = "lsp_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  };
+}
 
 type SessionPayload = { sub: string; exp: number };
 
@@ -19,7 +27,7 @@ function sign(value: string) {
   return createHmac("sha256", getSessionSecret()).update(value).digest("base64url");
 }
 
-export function createSessionToken(userId: string) {
+function createSessionToken(userId: string) {
   const payload: SessionPayload = {
     sub: userId,
     exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS,
@@ -49,25 +57,33 @@ function verifySessionToken(token: string): SessionPayload | null {
   }
 }
 
+function readSessionCookie(request: Request) {
+  const cookieHeader = request.headers.cookie;
+  if (!cookieHeader) return null;
+
+  for (const cookie of cookieHeader.split(";")) {
+    const separator = cookie.indexOf("=");
+    if (separator < 0 || cookie.slice(0, separator).trim() !== COOKIE_NAME) continue;
+    return cookie.slice(separator + 1).trim() || null;
+  }
+  return null;
+}
+
 export function setSessionCookie(response: Response, userId: string) {
-  const value = createSessionToken(userId);
-  response.headers.append(
-    "Set-Cookie",
-    `${COOKIE_NAME}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_SECONDS}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
-  );
+  response.cookie(COOKIE_NAME, createSessionToken(userId), {
+    ...cookieOptions(),
+    maxAge: SESSION_MAX_AGE_SECONDS * 1000,
+  });
   return response;
 }
 
 export function clearSessionCookie(response: Response) {
-  response.headers.append(
-    "Set-Cookie",
-    `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
-  );
+  response.clearCookie(COOKIE_NAME, cookieOptions());
   return response;
 }
 
-export async function getCurrentUser() {
-  const token = (await cookies()).get(COOKIE_NAME)?.value;
+export async function getCurrentUser(request: Request) {
+  const token = readSessionCookie(request);
   if (!token) return null;
   const session = verifySessionToken(token);
   if (!session) return null;
