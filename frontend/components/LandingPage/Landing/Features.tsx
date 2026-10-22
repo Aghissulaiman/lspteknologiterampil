@@ -14,36 +14,36 @@ export default function Features() {
   const features = [
     {
       icon: BookOpen,
-      title: "Standar SKKNI",
+      title: "Identitas Diri Resmi",
       description:
-        "Materi uji disusun mengacu pada Standar Kompetensi Kerja Nasional Indonesia terbaru.",
+        "Scan KTP, KIA, atau Kartu Pelajar/Mahasiswa yang masih berlaku.",
     },
     {
       icon: Users,
-      title: "Asesor Berlisensi BNSP",
+      title: "Pasfoto Formal",
       description:
-        "Asesmen dilakukan secara objektif oleh praktisi industri yang telah tersertifikasi sebagai penguji.",
+        "Pasfoto berwarna terbaru ukuran 3x4 dengan latar belakang merah.",
     },
     {
       icon: Video, // Cocok untuk skema IT/Digital (bisa juga diganti Monitor)
-      title: "Fasilitas TUK Memadai",
+      title: "Bukti Pendidikan",
       description:
-        "Tempat Uji Kompetensi dilengkapi perangkat keras dan lunak berstandar industri.",
+        "Scan Ijazah terakhir, Transkrip Nilai, atau Raport semester akhir.",
     },
     {
       icon: TrendingUp,
-      title: "Pengakuan Industri",
-      description: "Sertifikat berlogo Garuda yang langsung meningkatkan nilai jual Anda di dunia kerja.",
+      title: "Sertifikat Pelatihan",
+      description: "Sertifikat kursus atau pelatihan yang relevan dengan skema pilihan.",
     },
     {
       icon: ShieldCheck, // Menggantikan Users yang duplikat di kodemu
-      title: "Pra-Asesmen Terarah",
-      description: "Sesi konsultasi awal untuk memastikan kesiapan dokumen dan kelayakan portofolio Anda.",
+      title: "Pengalaman / Magang",
+      description: "Surat keterangan kerja dari industri atau sertifikat selesai PKL/Magang.",
     },
     {
       icon: ClipboardList,
-      title: "Proses Transparan",
-      description: "Alur pendaftaran, jadwal ujian praktik, hingga penerbitan sertifikat yang jelas dan terstruktur.",
+      title: "Portofolio & CV",
+      description: "Daftar Riwayat Hidup (CV) terbaru beserta bukti karya/projek sesuai skema.",
     },
   ];
 

@@ -8,30 +8,30 @@ export default function Workflow() {
     {
       step: "01",
       icon: UserPlus,
-      title: "Pendaftaran & Akun Asesi",
+      title: "Daftar & Pilih Skema",
       description:
-        "Isi formulir pendaftaran secara online, buat akun asesi, dan pilih skema sertifikasi yang sesuai dengan kompetensi Anda.",
+        "Buat akun Asesi, pilih skema sertifikasi sesuai keahlian, dan unggah berkas persyaratan dasar (APL-01).",
     },
     {
       step: "02",
       icon: FileCheck,
-      title: "Pra-Asesmen & Asesmen Mandiri",
+      title: "Asesmen Mandiri & Verifikasi",
       description:
-        "Unggah berkas persyaratan (APL-01 & APL-02) beserta bukti portofolio pendukung untuk diverifikasi oleh tim verifikator.",
+        "Isi formulir penilaian mandiri (APL-02). Admin dan Asesor akan memverifikasi berkasmu serta menentukan jadwal ujian.",
     },
     {
       step: "03",
       icon: ShieldCheck,
       title: "Pelaksanaan Uji Kompetensi",
       description:
-        "Ikuti proses ujian praktek & wawancara di Tempat Uji Kompetensi (TUK) bersama Asesor bersertifikasi resmi BNSP.",
+        "Ikuti proses asesmen bersama Asesor melalui uji praktik, observasi, tes tulis, atau wawancara di Tempat Uji Kompetensi (TUK).",
     },
     {
       step: "04",
       icon: Award,
-      title: "Penerbitan Sertifikat BNSP",
+      title: "Penerbitan Sertifikat",
       description:
-        "Jika dinyatakan 'Kompeten', Anda akan menerima Sertifikat Profesi resmi bertanda tangan BNSP yang berlaku nasional.",
+        "Peserta yang dinyatakan Kompeten (K) akan memperoleh Sertifikat Kompetensi resmi berlisensi BNSP.",
     },
   ];
 

@@ -16,15 +16,15 @@ export default function AboutHero() {
 
             {/* Main Title */}
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.15]">
-              Menjamin Mutu & <br />
+              Tentang LSP Teknologi <br />
               <span className="bg-gradient-to-r from-primary via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Kompetensi SDM Digital
+                Terampil Mayantara
               </span>
             </h1>
 
             {/* Paragraph Description */}
             <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed">
-              LSP Teknologi Terampil adalah Lembaga Sertifikasi Profesi Pihak Ke-3 (LSP-P3) yang berkomitmen melahirkan tenaga ahli TIK berstandar nasional melalui pengujian transparan, obyektif, dan akuntabel.
+              LSP Teknologi Terampil Mayantara adalah lembaga pelaksana kegiatan sertifikasi kompetensi kerja di bidang teknologi informasi dan komunikasi yang berlisensi resmi dari Badan Nasional Sertifikasi Profesi (BNSP). Kami berkomitmen mencetak talenta digital yang kompeten, profesional, dan diakui secara nasional maupun global.
             </p>
 
             {/* Bullet Points Keunggulan Singkat */}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import MaintenanceModal from "@/components/MaintenanceModal";
+import  MaintenanceModal  from "@/components/ui/MaintenanceModal";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = localFont({
@@ -70,7 +70,7 @@ export default function RootLayout({
           enableSystem
           themes={["light", "dark", "orange"]}
         >
-          <MaintenanceModal />
+          
           {children}
         </ThemeProvider>
       </body>

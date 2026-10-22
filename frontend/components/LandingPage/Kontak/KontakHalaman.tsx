@@ -424,7 +424,7 @@ export default function KontakHalaman() {
             </div>
 
             {/* Tombol Bantuan Cepat WhatsApp - UBAH DI SINI: hover:bg-orange-600 */}
-            <a
+            {/* <a
               href="https://wa.me/6281299998174"
               target="_blank"
               rel="noopener noreferrer"
@@ -432,7 +432,7 @@ export default function KontakHalaman() {
             >
               <MessageSquare className="h-4 w-4" />
               <span>Kirim Pesan via WhatsApp</span>
-            </a>
+            </a> */}
           </div>
 
           {/* Right Column: Formulir Kirim Pesan (3 Cols) */}

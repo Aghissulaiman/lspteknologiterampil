@@ -7,6 +7,7 @@ import Navbar from "@/components/LandingPage/Navbar";
 // import Schemes from "@/components/LandingPage/Landing/Schemes";
 import Workflow from "@/components/LandingPage/Landing/Workflow";
 
+
 export default function home() {
   return (
     <>
@@ -17,7 +18,8 @@ export default function home() {
       {/* <Schemes/> */}
       <Workflow/>
       {/* <Contact/> */}
-      <Footer/>
+      <Footer />
+      
     </>
   )
 }

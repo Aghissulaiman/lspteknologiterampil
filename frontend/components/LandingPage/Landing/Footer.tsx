@@ -18,10 +18,7 @@ export default function Footer() {
 
   const infoLinks = [
     { name: "Cek Status Sertifikat", href: "/Masuk?action=check-certificate" },
-    { name: "Verifikasi Keaslian", href: "/Masuk?action=verify" },
-    { name: "Prosedur Banding Asesmen", href: "/Masuk?action=appeal" },
-    { name: "Kebijakan Privasi", href: "/Masuk?action=privacy" },
-    { name: "Syarat & Ketentuan", href: "/Masuk?action=terms" },
+    { name: "Syarat & Ketentuan", href: "/Masuk?action=terms" }
   ];
 
   return (

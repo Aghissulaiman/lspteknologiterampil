@@ -87,6 +87,7 @@ export default function Navbar() {
       href: "#",
       children: [
         { name: "Skema Sertifikasi", href: "/skema" },
+     
         // { name: "Tempat Uji Kompetensi (TUK)", href: "/skema/tuk" },
         // { name: "Persyaratan Asesi", href: "/skema/persyaratan" },
       ],
