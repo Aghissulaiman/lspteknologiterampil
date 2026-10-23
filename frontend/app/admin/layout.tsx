@@ -228,7 +228,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     LSP <span className="text-[#0066CC] dark:text-blue-400">Teknologi Terampil</span>
                                 </h1>
                                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 mt-0.5">
-                                    Panel Administrator
+                                   Administrator
                                 </p>
                             </div>
                         </div>
