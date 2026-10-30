@@ -182,11 +182,11 @@
 "use client";
 
 import { Inter } from "next/font/google";
-import React, { useState, useEffect } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, LayoutDashboard, FileCheck, Building2, CalendarDays, Award, ShieldAlert } from "lucide-react";
+import { Sun, Moon, Menu, X, LogOut, LayoutDashboard, FileCheck, Building2, CalendarDays, Award, ShieldAlert, Users } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const MENU_ITEMS = [
@@ -194,22 +194,41 @@ const MENU_ITEMS = [
     { icon: FileCheck, label: "Verifikasi APL", desc: "Cek dokumen peserta", href: "/admin/verifikasi" },
     { icon: Building2, label: "Kelola TUK", desc: "Manajemen lokasi uji", href: "/admin/tuk" },
     { icon: CalendarDays, label: "Skema & Jadwal", desc: "Atur skema & asesor", href: "/admin/skema-jadwal" },
+    { icon: Users, label: "Kelola Akun", desc: "Data peserta & asesor", href: "/admin/pengguna" },
     { icon: Award, label: "Hasil & Sertifikat", desc: "Keputusan akhir", href: "/admin/hasil-sertifikat" },
     { icon: ShieldAlert, label: "Audit Log", desc: "Riwayat aktivitas", href: "/admin/audit-log" },
 ];
 
 const inter = Inter({ subsets: ["latin"] });
+const subscribeToMount = () => () => {};
+const getMountedSnapshot = () => true;
+const getServerMountedSnapshot = () => false;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const mounted = useSyncExternalStore(subscribeToMount, getMountedSnapshot, getServerMountedSnapshot);
+    const [loggingOut, setLoggingOut] = useState(false);
+    const [logoutError, setLogoutError] = useState("");
 
-    // Mencegah error mismatch SSR dengan memastikan komponen sudah ter-mount di client
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const handleLogout = async () => {
+        setLoggingOut(true);
+        setLogoutError("");
+        try {
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "same-origin",
+            });
+            if (!response.ok) throw new Error("Sesi belum dapat diakhiri. Coba lagi.");
+            router.replace("/");
+            router.refresh();
+        } catch (error) {
+            setLogoutError(error instanceof Error ? error.message : "Sesi belum dapat diakhiri. Coba lagi.");
+            setLoggingOut(false);
+        }
+    };
 
     return (
         <div className={`${inter.className}`}>
@@ -295,11 +314,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     <div className="p-5 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
+                        {logoutError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{logoutError}</p>}
                         <Button
                             variant="outline"
+                            onClick={handleLogout}
+                            disabled={loggingOut}
                             className="w-full py-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-500 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-2 transition"
                         >
-                            Keluar Sistem
+                            <LogOut className="h-4 w-4" aria-hidden="true" />
+                            {loggingOut ? "Mengakhiri sesi..." : "Keluar Sistem"}
                         </Button>
                     </div>
                 </aside>

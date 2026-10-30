@@ -146,7 +146,7 @@ export default function TUKPage() {
                                 <th className="px-6 py-4 font-semibold">Lokasi Gedung</th>
                                 <th className="px-6 py-4 font-semibold">Kapasitas</th>
                                 <th className="px-6 py-4 font-semibold">Status</th>
-                                <th className="px-6 py-4 font-semibold text-right">Aksi (CRUD)</th>
+                                <th className="px-6 py-4 font-semibold text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">

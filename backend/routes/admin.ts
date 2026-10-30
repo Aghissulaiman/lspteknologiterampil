@@ -503,6 +503,105 @@ router.patch("/test-sites/:testSiteId", async (request, response) => {
   }
 });
 
+router.get("/users", async (request, response) => {
+  const role = cleanString(request.query.role) || "all";
+  const search = cleanString(request.query.search);
+  const pageValue = request.query.page === undefined ? 1 : Number(request.query.page);
+  const pageSizeValue = request.query.pageSize === undefined ? 20 : Number(request.query.pageSize);
+
+  if (!["all", "participant", "assessor"].includes(role)) {
+    return response.status(400).json({ error: "Filter role tidak valid." });
+  }
+  if (search.length > 100 || !Number.isSafeInteger(pageValue) || pageValue < 1 || !Number.isSafeInteger(pageSizeValue) || pageSizeValue < 1) {
+    return response.status(400).json({ error: "Pencarian atau halaman tidak valid." });
+  }
+
+  const pageSize = Math.min(pageSizeValue, 100);
+  const offset = (pageValue - 1) * pageSize;
+
+  try {
+    const filterValues = [role, search];
+    const [users, count] = await Promise.all([
+      getPool().query(
+        `SELECT id, full_name, email, nik, phone, role, created_at
+         FROM users
+         WHERE role IN ('participant', 'assessor')
+           AND ($1 = 'all' OR role = $1)
+           AND ($2 = '' OR full_name ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%'
+             OR phone ILIKE '%' || $2 || '%' OR COALESCE(nik, '') ILIKE '%' || $2 || '%')
+         ORDER BY role, full_name, created_at DESC
+         LIMIT $3 OFFSET $4`,
+        [...filterValues, pageSize, offset],
+      ),
+      getPool().query(
+        `SELECT count(*)::int AS total
+         FROM users
+         WHERE role IN ('participant', 'assessor')
+           AND ($1 = 'all' OR role = $1)
+           AND ($2 = '' OR full_name ILIKE '%' || $2 || '%' OR email ILIKE '%' || $2 || '%'
+             OR phone ILIKE '%' || $2 || '%' OR COALESCE(nik, '') ILIKE '%' || $2 || '%')`,
+        filterValues,
+      ),
+    ]);
+
+    response.set("Cache-Control", "private, no-store").json({
+      users: users.rows,
+      total: count.rows[0].total,
+      page: pageValue,
+      pageSize,
+    });
+  } catch (error) {
+    console.error("Daftar akun gagal dimuat:", error);
+    response.status(500).json({ error: "Daftar akun belum dapat dimuat." });
+  }
+});
+
+router.patch("/users/:userId", async (request, response) => {
+  const { userId } = request.params;
+  if (!isUuid(userId)) return response.status(404).json({ error: "Akun tidak ditemukan." });
+  if (!isPlainObject(request.body)) return response.status(400).json({ error: "Format data tidak valid." });
+
+  const fullName = cleanString(request.body.fullName);
+  const email = cleanString(request.body.email).toLowerCase();
+  const nik = cleanString(request.body.nik).replace(/\s/g, "");
+  const phone = cleanString(request.body.phone);
+  if (fullName.length < 2 || fullName.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || !/^\d{16}$/.test(nik) || !/^[+\d][\d\s()-]{7,19}$/.test(phone)) {
+    return response.status(400).json({ error: "Nama, email, NIK 16 digit, atau nomor HP tidak valid." });
+  }
+
+  try {
+    const user = await inTransaction(async (client) => {
+      const current = await client.query("SELECT role FROM users WHERE id = $1 FOR UPDATE", [userId]);
+      if (!current.rowCount) throw new HttpError(404, "Akun tidak ditemukan.");
+      if (current.rows[0].role !== "participant" && current.rows[0].role !== "assessor") {
+        throw new HttpError(403, "Profil akun Admin tidak dapat diubah dari menu ini.");
+      }
+
+      const updated = await client.query(
+        `UPDATE users SET full_name = $2, email = $3, nik = $4, phone = $5
+         WHERE id = $1 RETURNING id, full_name, email, nik, phone, role, created_at`,
+        [userId, fullName, email, nik, phone],
+      );
+      await audit(client, authUser(response), "user.profile.updated", "user", userId, {
+        updatedFields: ["fullName", "email", "nik", "phone"],
+      });
+      return updated.rows[0];
+    });
+    response.set("Cache-Control", "private, no-store").json({ user });
+  } catch (error) {
+    if (error instanceof HttpError) return response.status(error.status).json({ error: error.message });
+    const databaseError = error as { code?: string; constraint?: string };
+    if (databaseError.code === "23505" && databaseError.constraint === "users_email_lower_unique") {
+      return response.status(409).json({ error: "Email sudah digunakan oleh akun lain." });
+    }
+    if (databaseError.code === "23505" && databaseError.constraint === "users_nik_unique") {
+      return response.status(409).json({ error: "NIK sudah digunakan oleh akun lain." });
+    }
+    console.error("Profil akun gagal diperbarui:", error);
+    response.status(500).json({ error: "Profil akun belum dapat diperbarui." });
+  }
+});
+
 router.get("/assessors", async (_request, response) => {
   try {
     const result = await getPool().query("SELECT id, full_name, email, phone, created_at FROM users WHERE role = 'assessor' ORDER BY full_name");

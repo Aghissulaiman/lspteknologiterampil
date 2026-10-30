@@ -176,7 +176,7 @@ export default function SkemaJadwalPage() {
                                 <th className="px-6 py-4 font-semibold">Kode Skema</th>
                                 <th className="px-6 py-4 font-semibold">Nama Skema Sertifikasi</th>
                                 <th className="px-6 py-4 font-semibold">Kategori Bidang</th>
-                                <th className="px-6 py-4 font-semibold text-right">Aksi (CRUD)</th>
+                                <th className="px-6 py-4 font-semibold text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
