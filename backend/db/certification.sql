@@ -2,6 +2,19 @@
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'participant';
 
+ALTER TABLE users
+  ALTER COLUMN nik DROP NOT NULL;
+
+DO $nik_role_constraint$
+BEGIN
+  ALTER TABLE users
+    ADD CONSTRAINT users_nik_role_check
+    CHECK (role = 'admin_lsp' OR (nik IS NOT NULL AND nik ~ '^[0-9]{16}$'));
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END
+$nik_role_constraint$;
+
 DO $role_constraint$
 BEGIN
   ALTER TABLE users

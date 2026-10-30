@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { clearSessionCookie, getCurrentUser, setSessionCookie } from "../lib/express-auth";
-import { createUser, findUserByEmail, hashPassword, newId, toPublicUser, verifyPassword, type UserRecord } from "../lib/server-store";
+import { createUser, findUserByEmail, hashPassword, newId, toPublicUser, verifyPassword, type UserRecord, type UserRole } from "../lib/server-store";
 import { cleanString, isPlainObject } from "../lib/certification-utils";
 
 const router = Router();
+
+function isUserRole(role: unknown): role is UserRole {
+  return role === "participant" || role === "assessor" || role === "admin_lsp";
+}
 
 router.post("/register", async (request, response) => {
   if (!isPlainObject(request.body)) return response.status(400).json({ error: "Format data tidak valid." });
@@ -59,6 +63,9 @@ router.post("/register", async (request, response) => {
 router.post("/login", async (request, response) => {
   if (!isPlainObject(request.body)) return response.status(400).json({ error: "Format data tidak valid." });
 
+  const role = request.body.role;
+  if (!isUserRole(role)) return response.status(400).json({ error: "Pilih peran yang valid." });
+
   const email = cleanString(request.body.email).toLowerCase();
   const password = typeof request.body.password === "string" ? request.body.password : "";
   if (!email || !password || email.length > 254 || password.length > 128) {
@@ -67,8 +74,8 @@ router.post("/login", async (request, response) => {
 
   try {
     const user = await findUserByEmail(email);
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
-      return response.status(401).json({ error: "Email atau kata sandi salah." });
+    if (!user || !(await verifyPassword(password, user.passwordHash)) || user.role !== role) {
+      return response.status(401).json({ error: "Email, kata sandi, atau peran tidak sesuai." });
     }
     setSessionCookie(response, user.id).json({ user: toPublicUser(user) });
   } catch (error) {

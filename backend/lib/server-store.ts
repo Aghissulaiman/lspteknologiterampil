@@ -8,7 +8,7 @@ export type UserRecord = {
   id: string;
   fullName: string;
   email: string;
-  nik: string;
+  nik: string | null;
   phone: string;
   passwordHash: string;
   createdAt: string;
@@ -30,7 +30,7 @@ type UserRow = {
   id: string;
   full_name: string;
   email: string;
-  nik: string;
+  nik: string | null;
   phone: string;
   password_hash: string;
   created_at: Date | string;

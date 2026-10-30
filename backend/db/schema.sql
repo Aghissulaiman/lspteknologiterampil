@@ -3,7 +3,7 @@
     id uuid PRIMARY KEY,
     full_name varchar(100) NOT NULL,
     email varchar(254) NOT NULL,
-    nik varchar(16) NOT NULL,
+    nik varchar(16),
     phone varchar(20) NOT NULL,
     password_hash text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now(),

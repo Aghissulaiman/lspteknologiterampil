@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ClipboardCheck, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,10 +15,25 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+type LoginRole = "participant" | "assessor" | "admin_lsp";
+
+const roleOptions: { value: LoginRole; label: string; Icon: typeof UserRound }[] = [
+  { value: "participant", label: "Asesi", Icon: UserRound },
+  { value: "assessor", label: "Asesor", Icon: ClipboardCheck },
+  { value: "admin_lsp", label: "Admin", Icon: ShieldCheck },
+];
+
+const roleDestinations: Record<LoginRole, string> = {
+  participant: "/dashboard",
+  assessor: "/asesor",
+  admin_lsp: "/admin",
+};
+
 export default function MasukForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<LoginRole>("participant");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,11 +45,11 @@ export default function MasukForm() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.get("email"), password: formData.get("password") }),
+        body: JSON.stringify({ email: formData.get("email"), password: formData.get("password"), role: selectedRole }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Tidak dapat masuk.");
-      router.push("/home/program");
+      router.push(roleDestinations[selectedRole]);
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Terjadi kesalahan. Coba lagi.");
@@ -79,13 +95,52 @@ export default function MasukForm() {
                     </span>
                   </div>
                   <h1 className="text-xl font-bold tracking-tight text-foreground">
-                    Masuk Akun Asesi
+                    Masuk ke Akun
                   </h1>
                   <p className="text-xs text-balance text-muted-foreground">
-                    Masukkan email dan kata sandi Anda untuk mengakses portal
-                    sertifikasi
+                    Pilih peran Anda dan masukkan akun untuk melanjutkan
                   </p>
                 </div>
+
+                <fieldset className="space-y-1.5">
+                  <legend className="text-xs font-medium text-foreground">
+                    Pilih Peran Anda
+                  </legend>
+                  <div className="grid grid-cols-3 gap-2">
+                    {roleOptions.map(({ value, label, Icon }) => {
+                      const isSelected = selectedRole === value;
+
+                      return (
+                        <label key={value} className="relative block cursor-pointer">
+                          <input
+                            type="radio"
+                            name="role"
+                            value={value}
+                            checked={isSelected}
+                            onChange={() => setSelectedRole(value)}
+                            required
+                            className="peer sr-only"
+                          />
+                          <span
+                            className={`flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 ${
+                              isSelected
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-border bg-background/60 text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                            }`}
+                          >
+                            <Icon className="h-5 w-5" aria-hidden="true" />
+                            <span className="text-[11px] font-semibold leading-tight">
+                              {label}
+                            </span>
+                          </span>
+                          <span className="absolute right-1.5 top-1.5 hidden h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground peer-checked:flex" aria-hidden="true">
+                            ✓
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
 
                 {/* Input Khusus Email */}
                 <Field className="gap-1">

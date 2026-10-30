@@ -33,13 +33,13 @@ Frontend Next.js meneruskan `/api/*` ke Express melalui `API_URL` (default `http
 
    Dari folder `backend/`, `npm run dev` menjalankan Express, dan `npm start` menjalankan Express. Dari root, `npm run start:backend` menjalankan Express; `npm run start` tetap menjalankan frontend Next.js.
 
-5. Daftarkan akun melalui aplikasi. Untuk menjadikannya Admin LSP pertama, isi `INITIAL_ADMIN_EMAIL` dengan email akun itu di `backend/.env`, lalu jalankan:
+5. Buat Admin LSP pertama secara terpisah dari akun peserta. Isi `INITIAL_ADMIN_NAME`, `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PHONE`, dan `INITIAL_ADMIN_PASSWORD` di `backend/.env`, lalu jalankan:
 
    ```bash
    npm run db:bootstrap-admin
    ```
 
-   Inisialisasi Admin hanya tersedia satu kali. Setelah Admin masuk, buat skema dan unit kompetensi lewat `/api/admin/schemes`. Akun asesor dibuat Admin melalui `/api/admin/assessors`.
+   Script membuat pengguna baru dengan role `admin_lsp`; akun peserta yang sudah ada tidak diubah. Bootstrap hanya dapat membuat Admin pertama satu kali. Kata sandi minimal 8 karakter dan disimpan sebagai hash. Setelah Admin masuk, buat skema dan unit kompetensi lewat `/api/admin/schemes`. Akun asesor dibuat Admin melalui `/api/admin/assessors`.
 
 Jika masih ada akun dan folder pada `backend/data/lspteknologiterampil.json`, data tersebut dapat dipindahkan dengan `npm run db:import-json`. Siapkan skema, TUK, dan jadwal terlebih dahulu sebelum peserta mengajukan sertifikasi.
 
@@ -140,7 +140,10 @@ Konfigurasi backend dibaca dari `backend/.env` (atau environment server). Fronte
 | `PRIVATE_UPLOAD_DIR` | Direktori file privat; default `backend/storage/private`, tidak disajikan sebagai file statis |
 | `TUK_REQUIRED_DOCUMENT_TYPES` | Kode dokumen wajib TUK dipisahkan koma; default `logo,company_profile,mou,layout` |
 | `CERTIFICATE_NUMBER_PREFIX` | Awalan nomor sertifikat, default `LSPTT` |
-| `INITIAL_ADMIN_EMAIL` | Email akun yang dipromosikan saat bootstrap Admin satu kali |
+| `INITIAL_ADMIN_NAME` | Nama untuk akun Admin pertama yang dibuat saat bootstrap |
+| `INITIAL_ADMIN_EMAIL` | Email khusus akun Admin pertama |
+| `INITIAL_ADMIN_PHONE` | Nomor WhatsApp untuk akun Admin pertama |
+| `INITIAL_ADMIN_PASSWORD` | Kata sandi awal akun Admin; minimal 8 karakter |
 
 Untuk mengubah tujuan proxy dari Next.js ke Express, isi `API_URL` di `frontend/.env.local` (default `http://127.0.0.1:4000`).
 
