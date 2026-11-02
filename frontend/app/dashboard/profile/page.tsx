@@ -1,11 +1,30 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type Region = { code: string; name: string };
+
+async function getRegions(path: string, signal: AbortSignal): Promise<Region[]> {
+    const response = await fetch(path, { signal, cache: "force-cache" });
+    if (!response.ok) throw new Error("Daftar wilayah belum dapat dimuat.");
+    const result = await response.json() as { data?: unknown };
+    if (!Array.isArray(result.data)) throw new Error("Format data wilayah tidak valid.");
+    return result.data as Region[];
+}
 
 export default function ProfilPage() {
     const router = useRouter();
+    const [provinces, setProvinces] = useState<Region[]>([]);
+    const [cities, setCities] = useState<Region[]>([]);
+    const [districts, setDistricts] = useState<Region[]>([]);
+    const [provinceCode, setProvinceCode] = useState("");
+    const [cityCode, setCityCode] = useState("");
+    const [loadingProvinces, setLoadingProvinces] = useState(true);
+    const [loadingCities, setLoadingCities] = useState(false);
+    const [loadingDistricts, setLoadingDistricts] = useState(false);
+    const [regionError, setRegionError] = useState("");
 
     const [profile, setProfile] = useState({
         nik: "",
@@ -33,6 +52,74 @@ export default function ProfilPage() {
 
     const [photoFile, setPhotoFile] = useState("");
     const [ktpFile, setKtpFile] = useState("");
+
+    useEffect(() => {
+        const controller = new AbortController();
+        getRegions("/regions/provinces", controller.signal)
+            .then(setProvinces)
+            .catch((error: unknown) => {
+                if (!controller.signal.aborted) {
+                    setRegionError(error instanceof Error ? error.message : "Daftar provinsi belum dapat dimuat.");
+                }
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoadingProvinces(false);
+            });
+        return () => controller.abort();
+    }, []);
+
+    useEffect(() => {
+        if (!provinceCode) return;
+        const controller = new AbortController();
+        getRegions(`/regions/regencies/${encodeURIComponent(provinceCode)}`, controller.signal)
+            .then(setCities)
+            .catch((error: unknown) => {
+                if (!controller.signal.aborted) {
+                    setRegionError(error instanceof Error ? error.message : "Daftar kota/kabupaten belum dapat dimuat.");
+                }
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoadingCities(false);
+            });
+        return () => controller.abort();
+    }, [provinceCode]);
+
+    useEffect(() => {
+        if (!cityCode) return;
+        const controller = new AbortController();
+        getRegions(`/regions/districts/${encodeURIComponent(cityCode)}`, controller.signal)
+            .then(setDistricts)
+            .catch((error: unknown) => {
+                if (!controller.signal.aborted) {
+                    setRegionError(error instanceof Error ? error.message : "Daftar kecamatan belum dapat dimuat.");
+                }
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoadingDistricts(false);
+            });
+        return () => controller.abort();
+    }, [cityCode]);
+
+    const selectProvince = (code: string) => {
+        const selected = provinces.find((province) => province.code === code);
+        setProfile((current) => ({ ...current, province: selected?.name ?? "", city: "", district: "" }));
+        setProvinceCode(code);
+        setCityCode("");
+        setCities([]);
+        setDistricts([]);
+        setLoadingCities(Boolean(code));
+        setLoadingDistricts(false);
+        setRegionError("");
+    };
+
+    const selectCity = (code: string) => {
+        const selected = cities.find((city) => city.code === code);
+        setProfile((current) => ({ ...current, city: selected?.name ?? "", district: "" }));
+        setCityCode(code);
+        setDistricts([]);
+        setLoadingDistricts(Boolean(code));
+        setRegionError("");
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,22 +192,22 @@ export default function ProfilPage() {
                     </div>
 
                     <div className="md:col-span-1 flex items-center">
-                        <label className="apl-label">Wilayah</label>
+                        <label className="apl-label">Wilayah<span className="text-red-500 ml-0.5">*</span></label>
                     </div>
                     <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <select value={profile.province} onChange={(e) => setProfile({ ...profile, province: e.target.value })} className="apl-input">
+                        <select required aria-label="Provinsi" value={provinceCode} onChange={(e) => selectProvince(e.target.value)} className="apl-input" disabled={loadingProvinces}>
                             <option value="">-- PILIH PROVINSI --</option>
-                            <option value="Jawa Barat">Jawa Barat</option>
-                            <option value="DKI Jakarta">DKI Jakarta</option>
+                            {provinces.map((province) => <option key={province.code} value={province.code}>{province.name}</option>)}
                         </select>
-                        <select value={profile.city} onChange={(e) => setProfile({ ...profile, city: e.target.value })} className="apl-input">
-                            <option value="">-- PILIH KOTA --</option>
-                            <option value="Bandung">Bandung</option>
+                        <select required aria-label="Kota atau kabupaten" value={cityCode} onChange={(e) => selectCity(e.target.value)} className="apl-input" disabled={!provinceCode || loadingCities}>
+                            <option value="">{loadingCities ? "MEMUAT KOTA..." : "-- PILIH KOTA/KABUPATEN --"}</option>
+                            {cities.map((city) => <option key={city.code} value={city.code}>{city.name}</option>)}
                         </select>
-                        <select value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} className="apl-input">
-                            <option value="">-- PILIH KECAMATAN --</option>
-                            <option value="Sukajadi">Sukajadi</option>
+                        <select required aria-label="Kecamatan" value={districts.find((district) => district.name === profile.district)?.code ?? ""} onChange={(e) => setProfile((current) => ({ ...current, district: districts.find((district) => district.code === e.target.value)?.name ?? "" }))} className="apl-input" disabled={!cityCode || loadingDistricts}>
+                            <option value="">{loadingDistricts ? "MEMUAT KECAMATAN..." : "-- PILIH KECAMATAN --"}</option>
+                            {districts.map((district) => <option key={district.code} value={district.code}>{district.name}</option>)}
                         </select>
+                        {regionError && <p role="alert" className="sm:col-span-3 text-xs text-red-700 dark:text-red-300">{regionError} Periksa koneksi internet lalu muat ulang halaman.</p>}
                     </div>
 
                     <div className="md:col-span-1 flex items-center">

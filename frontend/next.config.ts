@@ -12,6 +12,18 @@ const nextConfig = {
           source: "/api/:path*",
           destination: `${backendOrigin.replace(/\/$/, "")}/api/:path*`,
         },
+        {
+          source: "/regions/provinces",
+          destination: "https://wilayah.id/api/provinces.json",
+        },
+        {
+          source: "/regions/regencies/:provinceCode",
+          destination: "https://wilayah.id/api/regencies/:provinceCode.json",
+        },
+        {
+          source: "/regions/districts/:cityCode",
+          destination: "https://wilayah.id/api/districts/:cityCode.json",
+        },
       ],
     };
   },
