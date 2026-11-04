@@ -15,6 +15,7 @@ import multer from "multer";
 const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "256kb" }));
+app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 
 app.get("/health", (_request, response) => response.json({ ok: true }));
 app.use("/api/auth", authRoutes);

@@ -47,10 +47,13 @@ CREATE TABLE IF NOT EXISTS competency_units (
   title varchar(250) NOT NULL,
   description text NOT NULL DEFAULT '',
   sort_order integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT competency_units_scheme_code_unique UNIQUE (scheme_id, code),
   CONSTRAINT competency_units_id_scheme_unique UNIQUE (id, scheme_id)
 );
+
+ALTER TABLE competency_units ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
 
 CREATE TABLE IF NOT EXISTS scheme_document_requirements (
   id uuid PRIMARY KEY,
@@ -240,12 +243,18 @@ CREATE INDEX IF NOT EXISTS assessments_assessor_idx ON assessments (assessor_id,
 CREATE TABLE IF NOT EXISTS assessment_unit_results (
   assessment_id uuid NOT NULL REFERENCES assessments (id) ON DELETE CASCADE,
   unit_id uuid NOT NULL REFERENCES competency_units (id) ON DELETE RESTRICT,
-  result text NOT NULL CHECK (result IN ('competent', 'not_competent')),
+  result text CHECK (result IS NULL OR result IN ('competent', 'not_competent')),
   evidence_notes text NOT NULL DEFAULT '',
   notes text NOT NULL DEFAULT '',
   updated_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (assessment_id, unit_id)
 );
+
+ALTER TABLE assessment_unit_results ALTER COLUMN result DROP NOT NULL;
+ALTER TABLE assessment_unit_results DROP CONSTRAINT IF EXISTS assessment_unit_results_result_check;
+ALTER TABLE assessment_unit_results
+  ADD CONSTRAINT assessment_unit_results_result_check
+  CHECK (result IS NULL OR result IN ('competent', 'not_competent'));
 
 CREATE TABLE IF NOT EXISTS assessment_unit_evidence (
   assessment_id uuid NOT NULL,

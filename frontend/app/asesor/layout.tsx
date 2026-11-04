@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
     ClipboardList,
@@ -37,7 +37,6 @@ export default function AsesorLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
-    const router = useRouter();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const { theme, setTheme, resolvedTheme } = useTheme();
@@ -61,7 +60,7 @@ export default function AsesorLayout({
             icon: ClipboardList,
         },
         {
-            name: "Riwayat Penilaian",
+            name: "Riwayat Pemeriksaan",
             href: "/asesor/riwayat",
             icon: History,
         },
@@ -132,14 +131,12 @@ export default function AsesorLayout({
 
                 {/* Tombol Keluar di Bawah Sidebar */}
                 <div className="p-4 border-t border-border">
-                    <Button
-                        variant="outline"
-                        className="w-full justify-center gap-2 font-bold text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20 rounded-xl h-11"
-                        onClick={() => router.push("/auth/login")}
-                    >
-                        <LogOut className="h-4 w-4" />
-                        <span>Keluar Sistem</span>
-                    </Button>
+                    <form action="/api/auth/logout" method="post">
+                        <Button type="submit" variant="outline" className="w-full justify-center gap-2 font-bold text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20 rounded-xl h-11">
+                            <LogOut className="h-4 w-4" />
+                            <span>Keluar Sistem</span>
+                        </Button>
+                    </form>
                 </div>
             </aside>
 
@@ -184,14 +181,12 @@ export default function AsesorLayout({
                         </div>
 
                         <div className="p-4 border-t border-border">
-                            <Button
-                                variant="outline"
-                                className="w-full justify-center gap-2 font-bold text-destructive hover:bg-destructive/10 rounded-xl h-11"
-                                onClick={() => router.push("/auth/login")}
-                            >
-                                <LogOut className="h-4 w-4" />
-                                <span>Keluar Sistem</span>
-                            </Button>
+                            <form action="/api/auth/logout" method="post">
+                                <Button type="submit" variant="outline" className="w-full justify-center gap-2 font-bold text-destructive hover:bg-destructive/10 rounded-xl h-11">
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Keluar Sistem</span>
+                                </Button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -222,7 +217,7 @@ export default function AsesorLayout({
                                     <span className="text-primary">Asesor LSP</span>
                                 </span>
                                 <span className="block text-[10px] font-extrabold text-muted-foreground uppercase tracking-wider">
-                                    Sistem Penilaian Kompetensi BNSP
+                                    Pemeriksaan Uji Kompetensi BNSP
                                 </span>
                             </div>
                         </div>

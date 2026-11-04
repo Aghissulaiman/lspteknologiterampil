@@ -184,7 +184,7 @@
 import { Inter } from "next/font/google";
 import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Menu, X, LogOut, LayoutDashboard, FileCheck, Building2, CalendarDays, Award, ShieldAlert, Users } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -206,29 +206,9 @@ const getServerMountedSnapshot = () => false;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const mounted = useSyncExternalStore(subscribeToMount, getMountedSnapshot, getServerMountedSnapshot);
-    const [loggingOut, setLoggingOut] = useState(false);
-    const [logoutError, setLogoutError] = useState("");
-
-    const handleLogout = async () => {
-        setLoggingOut(true);
-        setLogoutError("");
-        try {
-            const response = await fetch("/api/auth/logout", {
-                method: "POST",
-                credentials: "same-origin",
-            });
-            if (!response.ok) throw new Error("Sesi belum dapat diakhiri. Coba lagi.");
-            router.replace("/");
-            router.refresh();
-        } catch (error) {
-            setLogoutError(error instanceof Error ? error.message : "Sesi belum dapat diakhiri. Coba lagi.");
-            setLoggingOut(false);
-        }
-    };
 
     return (
         <div className={`${inter.className}`}>
@@ -314,16 +294,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     <div className="p-5 border-t border-slate-100 dark:border-slate-800/80 space-y-2.5">
-                        {logoutError && <p role="alert" className="text-xs text-red-700 dark:text-red-300">{logoutError}</p>}
-                        <Button
-                            variant="outline"
-                            onClick={handleLogout}
-                            disabled={loggingOut}
-                            className="w-full py-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-500 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-2 transition"
-                        >
-                            <LogOut className="h-4 w-4" aria-hidden="true" />
-                            {loggingOut ? "Mengakhiri sesi..." : "Keluar Sistem"}
-                        </Button>
+                        <form action="/api/auth/logout" method="post">
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                className="w-full py-5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-500 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center gap-2 transition"
+                            >
+                                <LogOut className="h-4 w-4" aria-hidden="true" />
+                                Keluar Sistem
+                            </Button>
+                        </form>
                     </div>
                 </aside>
 

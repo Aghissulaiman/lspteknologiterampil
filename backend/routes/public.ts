@@ -16,7 +16,7 @@ async function publicSchemeDetails(schemeId: string) {
   const [units, documents] = await Promise.all([
     pool.query(
       `SELECT id, code, title, description, sort_order
-       FROM competency_units WHERE scheme_id = $1 ORDER BY sort_order, code`,
+       FROM competency_units WHERE scheme_id = $1 AND is_active = true ORDER BY sort_order, code`,
       [schemeId],
     ),
     pool.query(

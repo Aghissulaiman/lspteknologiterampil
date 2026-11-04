@@ -209,11 +209,19 @@ router.get("/:applicationId", async (request, response) => {
         [applicationId],
       ),
     ]);
+    const submittedUnits = Array.isArray(application.rows[0].submission_snapshot?.apl02)
+      ? application.rows[0].submission_snapshot.apl02 as Array<{ unitId: string; code: string; title: string }>
+      : [];
+    const submittedUnitById = new Map(submittedUnits.map((unit) => [unit.unitId, unit]));
+    const apl02Rows = selfAssessment.rows.map((row: { unit_id: string; unit_code: string; unit_title: string }) => {
+      const submittedUnit = submittedUnitById.get(row.unit_id);
+      return submittedUnit ? { ...row, unit_code: submittedUnit.code, unit_title: submittedUnit.title } : row;
+    });
     response.set("Cache-Control", "private, no-store").json({
       application: {
         ...application.rows[0],
         documents: documents.rows,
-        apl02: selfAssessment.rows,
+        apl02: apl02Rows,
         statusHistory: history.rows,
         assessment: assessment.rows[0] ?? null,
         certificate: certificate.rows[0] ?? null,
@@ -304,7 +312,7 @@ router.put("/:applicationId/apl02", async (request, response) => {
       if (!application) throw new HttpError(404, "Permohonan tidak ditemukan.");
       assertEditable(application.status);
 
-      const units = await client.query("SELECT id FROM competency_units WHERE scheme_id = $1", [application.scheme_id]);
+      const units = await client.query("SELECT id FROM competency_units WHERE scheme_id = $1 AND is_active = true", [application.scheme_id]);
       const unitIds = new Set(units.rows.map((row: { id: string }) => row.id));
       const requestedIds = entries.map((entry: Record<string, unknown>) => entry.unitId);
       if (requestedIds.some((id: unknown) => !isUuid(id) || !unitIds.has(id)) || new Set(requestedIds).size !== requestedIds.length) {
@@ -494,7 +502,7 @@ router.post("/:applicationId/submit", async (request, response) => {
       if (aplErrors.length) throw new HttpError(400, "Data APL-01 belum lengkap.", { fields: aplErrors });
 
       const units = await client.query(
-        `SELECT id, code, title FROM competency_units WHERE scheme_id = $1 ORDER BY sort_order, code`,
+        `SELECT id, code, title, description FROM competency_units WHERE scheme_id = $1 AND is_active = true ORDER BY sort_order, code`,
         [application.scheme_id],
       );
       if (!units.rowCount) throw new HttpError(409, "Skema belum memiliki unit kompetensi yang dapat dinilai.");
@@ -558,13 +566,15 @@ router.post("/:applicationId/submit", async (request, response) => {
           testSite: { id: schedule.rows[0].test_site_id, name: schedule.rows[0].test_site_name, address: schedule.rows[0].test_site_address },
         },
         apl01: application.apl01,
-        apl02: units.rows.map((unit: { id: string; code: string; title: string }) => ({
+        apl02: units.rows.map((unit: { id: string; code: string; title: string; description: string }) => ({
           unitId: unit.id,
           code: unit.code,
           title: unit.title,
+          description: unit.description,
           response: answers.rows.find((answer: { unit_id: string }) => answer.unit_id === unit.id),
         })),
         documents: uploadedDocs.rows,
+        requiredDocuments: requiredDocs.rows,
       };
       await client.query(
         `UPDATE certification_applications SET status = 'submitted', submitted_at = now(),

@@ -1,9 +1,5 @@
-"use client";
-
-import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ClipboardCheck, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,49 +11,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-type LoginRole = "participant" | "assessor" | "admin_lsp";
-
-const roleOptions: { value: LoginRole; label: string; Icon: typeof UserRound }[] = [
+const roleOptions: { value: string; label: string; Icon: typeof UserRound }[] = [
   { value: "participant", label: "Asesi", Icon: UserRound },
   { value: "assessor", label: "Asesor", Icon: ClipboardCheck },
   { value: "admin_lsp", label: "Admin", Icon: ShieldCheck },
 ];
 
-const roleDestinations: Record<LoginRole, string> = {
-  participant: "/dashboard",
-  assessor: "/asesor",
-  admin_lsp: "/admin",
-};
-
-export default function MasukForm() {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<LoginRole>("participant");
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.get("email"), password: formData.get("password"), role: selectedRole }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Tidak dapat masuk.");
-      router.push(roleDestinations[selectedRole]);
-      router.refresh();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+export default function MasukForm({ error }: { error?: string }) {
   return (
     <div
       className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden"
@@ -74,7 +34,8 @@ export default function MasukForm() {
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
-              onSubmit={handleSubmit}
+              action="/api/auth/login"
+              method="post"
             >
               <FieldGroup className="gap-3">
                 {/* Header Branding LSP */}
@@ -108,26 +69,17 @@ export default function MasukForm() {
                   </legend>
                   <div className="grid grid-cols-3 gap-2">
                     {roleOptions.map(({ value, label, Icon }) => {
-                      const isSelected = selectedRole === value;
-
                       return (
                         <label key={value} className="relative block cursor-pointer">
                           <input
                             type="radio"
                             name="role"
                             value={value}
-                            checked={isSelected}
-                            onChange={() => setSelectedRole(value)}
+                            defaultChecked={value === "participant"}
                             required
                             className="peer sr-only"
                           />
-                          <span
-                            className={`flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2 ${
-                              isSelected
-                                ? "border-primary bg-primary/5 text-primary"
-                                : "border-border bg-background/60 text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                            }`}
-                          >
+                          <span className="flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background/60 px-2 py-2 text-center text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
                             <Icon className="h-5 w-5" aria-hidden="true" />
                             <span className="text-[11px] font-semibold leading-tight">
                               {label}
@@ -193,10 +145,9 @@ export default function MasukForm() {
                 <Field className="pt-2">
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
                     className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
                   >
-                    {isSubmitting ? "Memeriksa akun..." : "Masuk Sekarang"}
+                    Masuk Sekarang
                   </Button>
                 </Field>
 

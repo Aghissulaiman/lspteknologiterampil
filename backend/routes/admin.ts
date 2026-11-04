@@ -76,7 +76,15 @@ router.get("/applications/:applicationId", async (request, response) => {
       pool.query("SELECT certificate_number, scheme_name, issued_at FROM certificates WHERE application_id = $1", [applicationId]),
     ]);
     if (!application.rowCount) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
-    response.set("Cache-Control", "private, no-store").json({ application: application.rows[0], documents: docs.rows, apl02: apl02.rows, history: history.rows, assessment: assessment.rows[0] ?? null, certificate: certificate.rows[0] ?? null });
+    const submittedUnits = Array.isArray(application.rows[0].submission_snapshot?.apl02)
+      ? application.rows[0].submission_snapshot.apl02 as Array<{ unitId: string; code: string; title: string }>
+      : [];
+    const submittedUnitById = new Map<string, { unitId: string; code: string; title: string }>(submittedUnits.map((unit) => [unit.unitId, unit] as const));
+    const apl02Rows = apl02.rows.map((row: { unit_id: string; code: string; title: string }) => {
+      const submittedUnit = submittedUnitById.get(row.unit_id);
+      return submittedUnit ? { ...row, code: submittedUnit.code, title: submittedUnit.title } : row;
+    });
+    response.set("Cache-Control", "private, no-store").json({ application: application.rows[0], documents: docs.rows, apl02: apl02Rows, history: history.rows, assessment: assessment.rows[0] ?? null, certificate: certificate.rows[0] ?? null });
   } catch (error) {
     console.error("Detail permohonan admin gagal dimuat:", error);
     response.status(500).json({ error: "Detail permohonan belum dapat dimuat." });
@@ -108,18 +116,23 @@ router.post("/applications/:applicationId/verify", async (request, response) => 
   if (!isUuid(applicationId)) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
   try {
     await inTransaction(async (client) => {
-      const row = await client.query("SELECT status, scheme_id FROM certification_applications WHERE id = $1 FOR UPDATE", [applicationId]);
+      const row = await client.query("SELECT status, scheme_id, submission_snapshot FROM certification_applications WHERE id = $1 FOR UPDATE", [applicationId]);
       if (!row.rowCount) throw new HttpError(404, "Permohonan tidak ditemukan.");
       if (row.rows[0].status !== "submitted") throw new HttpError(409, "Hanya permohonan submitted yang dapat diverifikasi.");
-      const [requirements, docs, units, answers] = await Promise.all([
+      const [currentRequirements, docs, currentUnits, answers] = await Promise.all([
         client.query("SELECT code, category FROM scheme_document_requirements WHERE scheme_id = $1 AND is_required = true", [row.rows[0].scheme_id]),
         client.query("SELECT document_type, category FROM stored_documents WHERE application_id = $1", [applicationId]),
-        client.query("SELECT id FROM competency_units WHERE scheme_id = $1", [row.rows[0].scheme_id]),
+        client.query("SELECT id FROM competency_units WHERE scheme_id = $1 AND is_active = true", [row.rows[0].scheme_id]),
         client.query("SELECT unit_id FROM application_apl02 WHERE application_id = $1", [applicationId]),
       ]);
-      const missingDocs = requirements.rows.filter((item: { code: string; category: string }) => !docs.rows.some((doc: { document_type: string; category: string }) => doc.document_type === item.code && doc.category === item.category));
+      const snapshot = row.rows[0].submission_snapshot ?? {};
+      const requiredDocuments = Array.isArray(snapshot.requiredDocuments) ? snapshot.requiredDocuments : currentRequirements.rows;
+      const snapshotUnits = Array.isArray(snapshot.apl02) ? snapshot.apl02 as Array<{ unitId: string }> : [];
+      const expectedUnitIds = snapshotUnits.length ? snapshotUnits.map((unit) => unit.unitId) : currentUnits.rows.map((unit: { id: string }) => unit.id);
+      const answerIds = answers.rows.map((answer: { unit_id: string }) => answer.unit_id);
+      const missingDocs = requiredDocuments.filter((item: { code: string; category: string }) => !docs.rows.some((doc: { document_type: string; category: string }) => doc.document_type === item.code && doc.category === item.category));
       if (missingDocs.length) throw new HttpError(409, "Dokumen wajib belum lengkap.", { missingDocuments: missingDocs.map((row: { code: string; category: string }) => ({ code: row.code, category: row.category })) });
-      if (units.rowCount < 1 || units.rowCount !== answers.rowCount || units.rows.some((unit: { id: string }) => !answers.rows.some((answer: { unit_id: string }) => answer.unit_id === unit.id))) throw new HttpError(409, "Jawaban APL-02 belum lengkap.");
+      if (expectedUnitIds.length < 1 || expectedUnitIds.length !== answerIds.length || expectedUnitIds.some((unitId) => !answerIds.includes(unitId))) throw new HttpError(409, "Jawaban APL-02 belum lengkap.");
       await client.query("UPDATE certification_applications SET status = 'verified', updated_at = now() WHERE id = $1", [applicationId]);
       await recordApplicationStatus(client, applicationId, authUser(response), "submitted", "verified", null, "application.verified");
     });
@@ -257,15 +270,15 @@ router.post("/applications/:applicationId/final-decision", async (request, respo
   try {
     await inTransaction(async (client) => {
       const row = await client.query(
-        `SELECT a.status, x.recommendation FROM certification_applications a JOIN assessments x ON x.application_id = a.id
+        `SELECT a.status FROM certification_applications a JOIN assessments x ON x.application_id = a.id
          WHERE a.id = $1 FOR UPDATE OF a, x`, [applicationId]);
-      if (!row.rowCount) throw new HttpError(404, "Permohonan atau rekomendasi asesor tidak ditemukan.");
-      if (row.rows[0].status !== "assessment_completed" || !row.rows[0].recommendation) throw new HttpError(409, "Keputusan akhir hanya dapat dibuat setelah rekomendasi asesor.");
+      if (!row.rowCount) throw new HttpError(404, "Permohonan atau catatan pemeriksaan tidak ditemukan.");
+      if (row.rows[0].status !== "assessment_completed") throw new HttpError(409, "Keputusan akhir hanya dapat dibuat setelah pemeriksaan selesai.");
       await client.query(
         `UPDATE certification_applications SET status = $2, final_decision = $2, decision_note = $3,
            decision_by = $4, decision_at = now(), updated_at = now() WHERE id = $1`,
         [applicationId, decision, note, authUser(response).id]);
-      await recordApplicationStatus(client, applicationId, authUser(response), "assessment_completed", decision, note || null, "application.final_decision_recorded", { decision, assessorRecommendation: row.rows[0].recommendation });
+      await recordApplicationStatus(client, applicationId, authUser(response), "assessment_completed", decision, note || null, "application.final_decision_recorded", { decision });
     });
     response.json({ application: { id: applicationId, status: decision, finalDecision: decision } });
   } catch (error) {

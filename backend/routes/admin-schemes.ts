@@ -12,10 +12,12 @@ function structureFrom(body: Record<string, unknown>) {
   if (!Array.isArray(body.units) || body.units.length === 0 || body.units.length > 500) {
     throw new HttpError(400, "Skema harus memiliki 1–500 unit kompetensi.");
   }
-  const units: Array<{ code: string; title: string; description: string; sortOrder: number }> = [];
+  const units: Array<{ id?: string; code: string; title: string; description: string; sortOrder: number }> = [];
   const unitCodes = new Set<string>();
   for (const value of body.units) {
     if (!isPlainObject(value)) throw new HttpError(400, "Format unit kompetensi tidak valid.");
+    const id = value.id === undefined ? undefined : cleanString(value.id);
+    if (id !== undefined && !isUuid(id)) throw new HttpError(400, "ID unit kompetensi tidak valid.");
     const code = cleanString(value.code);
     const title = cleanString(value.title);
     const description = cleanString(value.description);
@@ -25,7 +27,7 @@ function structureFrom(body: Record<string, unknown>) {
     }
     if (unitCodes.has(code.toLowerCase())) throw new HttpError(400, "Kode unit kompetensi tidak boleh berulang.");
     unitCodes.add(code.toLowerCase());
-    units.push({ code, title, description, sortOrder });
+    units.push({ ...(id ? { id } : {}), code, title, description, sortOrder });
   }
 
   const documentRequirements: Array<{ code: string; label: string; category: string; isRequired: boolean; allowedMimeTypes: string[] }> = [];
@@ -63,7 +65,7 @@ async function insertStructure(client: import("pg").PoolClient, schemeId: string
     await client.query(
       `INSERT INTO competency_units (id, scheme_id, code, title, description, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [newId(), schemeId, unit.code, unit.title, unit.description, unit.sortOrder],
+      [unit.id ?? newId(), schemeId, unit.code, unit.title, unit.description, unit.sortOrder],
     );
   }
   for (const document of structure.documentRequirements) {
@@ -80,10 +82,12 @@ router.get("/", async (_request, response) => {
     const result = await getPool().query(
       `SELECT s.id, s.code, s.name, s.category, s.level, s.description, s.requirements,
               s.is_public, s.is_active, s.created_at, s.updated_at,
-              count(DISTINCT u.id)::int AS unit_count, count(DISTINCT d.id)::int AS document_requirement_count
+              count(DISTINCT u.id)::int AS unit_count, count(DISTINCT d.id)::int AS document_requirement_count,
+              count(DISTINCT a.id)::int AS application_count
        FROM certification_schemes s
-       LEFT JOIN competency_units u ON u.scheme_id = s.id
+       LEFT JOIN competency_units u ON u.scheme_id = s.id AND u.is_active = true
        LEFT JOIN scheme_document_requirements d ON d.scheme_id = s.id
+       LEFT JOIN certification_applications a ON a.scheme_id = s.id
        GROUP BY s.id ORDER BY s.name, s.code`,
     );
     response.set("Cache-Control", "private, no-store").json({ schemes: result.rows });
@@ -98,12 +102,20 @@ router.post("/", async (request, response) => {
   const body = request.body;
   const code = cleanString(body.code).toUpperCase();
   const name = cleanString(body.name);
+  const category = cleanString(body.category);
+  const level = cleanString(body.level);
+  const description = cleanString(body.description);
   if (!/^[A-Z0-9][A-Z0-9_-]{1,49}$/.test(code) || name.length < 2 || name.length > 200) {
     return response.status(400).json({ error: "Kode atau nama skema tidak valid." });
+  }
+  if (category.length > 100 || level.length > 100 || description.length > 20000) {
+    return response.status(400).json({ error: "Kategori, level, atau deskripsi skema terlalu panjang." });
   }
   if (body.requirements !== undefined && !isPlainObject(body.requirements)) {
     return response.status(400).json({ error: "requirements harus berupa objek." });
   }
+  if (body.isPublic !== undefined && typeof body.isPublic !== "boolean") return response.status(400).json({ error: "isPublic harus boolean." });
+  if (body.isActive !== undefined && typeof body.isActive !== "boolean") return response.status(400).json({ error: "isActive harus boolean." });
 
   try {
     const structure = structureFrom(body);
@@ -113,7 +125,7 @@ router.post("/", async (request, response) => {
         `INSERT INTO certification_schemes
            (id, code, name, category, level, description, requirements, is_public, is_active, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)`,
-        [id, code, name, cleanString(body.category), cleanString(body.level), cleanString(body.description),
+        [id, code, name, category, level, description,
           JSON.stringify(body.requirements ?? {}), body.isPublic === true, body.isActive !== false, authUser(response).id],
       );
       await insertStructure(client, id, structure);
@@ -133,16 +145,121 @@ router.get("/:schemeId", async (request, response) => {
   if (!isUuid(request.params.schemeId)) return response.status(400).json({ error: "schemeId tidak valid." });
   try {
     const pool = getPool();
-    const [scheme, units, documents] = await Promise.all([
+    const [scheme, units, documents, applications] = await Promise.all([
       pool.query("SELECT * FROM certification_schemes WHERE id = $1", [request.params.schemeId]),
-      pool.query("SELECT * FROM competency_units WHERE scheme_id = $1 ORDER BY sort_order, code", [request.params.schemeId]),
+      pool.query("SELECT * FROM competency_units WHERE scheme_id = $1 AND is_active = true ORDER BY sort_order, code", [request.params.schemeId]),
       pool.query("SELECT * FROM scheme_document_requirements WHERE scheme_id = $1 ORDER BY category, code", [request.params.schemeId]),
+      pool.query("SELECT count(*)::int AS count FROM certification_applications WHERE scheme_id = $1", [request.params.schemeId]),
     ]);
     if (!scheme.rowCount) return response.status(404).json({ error: "Skema tidak ditemukan." });
-    response.set("Cache-Control", "private, no-store").json({ scheme: { ...scheme.rows[0], units: units.rows, documentRequirements: documents.rows } });
+    response.set("Cache-Control", "private, no-store").json({ scheme: { ...scheme.rows[0], applicationCount: applications.rows[0].count, units: units.rows, documentRequirements: documents.rows } });
   } catch (error) {
     console.error("Detail skema gagal dimuat:", error);
     response.status(500).json({ error: "Detail skema belum dapat dimuat." });
+  }
+});
+
+router.put("/:schemeId", async (request, response) => {
+  if (!isUuid(request.params.schemeId) || !isPlainObject(request.body)) {
+    return response.status(400).json({ error: "Permintaan tidak valid." });
+  }
+
+  const body = request.body;
+  const code = cleanString(body.code).toUpperCase();
+  const name = cleanString(body.name);
+  const category = cleanString(body.category);
+  const level = cleanString(body.level);
+  const description = cleanString(body.description);
+  if (!/^[A-Z0-9][A-Z0-9_-]{1,49}$/.test(code) || name.length < 2 || name.length > 200) {
+    return response.status(400).json({ error: "Kode atau nama skema tidak valid." });
+  }
+  if (category.length > 100 || level.length > 100 || description.length > 20000) {
+    return response.status(400).json({ error: "Kategori, level, atau deskripsi skema terlalu panjang." });
+  }
+  if (!isPlainObject(body.requirements)) return response.status(400).json({ error: "Persyaratan skema harus berupa objek JSON." });
+  if (typeof body.isPublic !== "boolean" || typeof body.isActive !== "boolean") {
+    return response.status(400).json({ error: "Status publik dan aktif wajib berupa boolean." });
+  }
+
+  try {
+    const structure = structureFrom(body);
+    const scheme = await inTransaction(async (client) => {
+      const exists = await client.query("SELECT id FROM certification_schemes WHERE id = $1 FOR UPDATE", [request.params.schemeId]);
+      if (!exists.rowCount) throw new HttpError(404, "Skema tidak ditemukan.");
+
+      const currentUnits = await client.query(
+        "SELECT id FROM competency_units WHERE scheme_id = $1 AND is_active = true FOR UPDATE",
+        [request.params.schemeId],
+      );
+      const existingIds = new Set(currentUnits.rows.map((unit: { id: string }) => unit.id));
+      const submittedIds = structure.units.flatMap((unit) => unit.id ? [unit.id] : []);
+      if (new Set(submittedIds).size !== submittedIds.length || submittedIds.some((id) => !existingIds.has(id))) {
+        throw new HttpError(400, "Unit skema berisi ID yang tidak dikenal atau berulang.");
+      }
+
+      const retainedIds = new Set(submittedIds);
+      const removedIds = [...existingIds].filter((id) => !retainedIds.has(id));
+      for (const unitId of removedIds) {
+        const references = await client.query(
+          `SELECT EXISTS (SELECT 1 FROM application_apl02 WHERE unit_id = $1)
+             OR EXISTS (SELECT 1 FROM assessment_unit_results WHERE unit_id = $1) AS is_referenced`,
+          [unitId],
+        );
+        if (references.rows[0].is_referenced) {
+          await client.query(
+            "UPDATE competency_units SET is_active = false, code = $2 WHERE id = $1",
+            [unitId, `__archived_${unitId}`],
+          );
+        } else {
+          await client.query("DELETE FROM competency_units WHERE id = $1", [unitId]);
+        }
+      }
+
+      for (const unitId of submittedIds) {
+        await client.query("UPDATE competency_units SET code = $2 WHERE id = $1", [unitId, `__editing_${unitId}`]);
+      }
+      for (const unit of structure.units) {
+        if (unit.id) {
+          await client.query(
+            `UPDATE competency_units SET code = $2, title = $3, description = $4, sort_order = $5, is_active = true
+             WHERE id = $1`,
+            [unit.id, unit.code, unit.title, unit.description, unit.sortOrder],
+          );
+        } else {
+          await client.query(
+            `INSERT INTO competency_units (id, scheme_id, code, title, description, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [newId(), request.params.schemeId, unit.code, unit.title, unit.description, unit.sortOrder],
+          );
+        }
+      }
+
+      await client.query("DELETE FROM scheme_document_requirements WHERE scheme_id = $1", [request.params.schemeId]);
+      for (const document of structure.documentRequirements) {
+        await client.query(
+          `INSERT INTO scheme_document_requirements (id, scheme_id, code, label, category, is_required, allowed_mime_types)
+           VALUES ($1, $2, $3, $4, $5, $6, $7::text[])`,
+          [newId(), request.params.schemeId, document.code, document.label, document.category, document.isRequired, document.allowedMimeTypes],
+        );
+      }
+
+      const updated = await client.query(
+        `UPDATE certification_schemes SET code = $2, name = $3, category = $4, level = $5, description = $6,
+           requirements = $7::jsonb, is_public = $8, is_active = $9, updated_at = now()
+         WHERE id = $1 RETURNING id, code, name, category, level, description, requirements, is_public, is_active, updated_at`,
+        [request.params.schemeId, code, name, category, level, description, JSON.stringify(body.requirements), body.isPublic, body.isActive],
+      );
+      await audit(client, authUser(response), "scheme.updated", "scheme", request.params.schemeId, {
+        fields: ["code", "name", "category", "level", "description", "requirements", "isPublic", "isActive", "units", "documentRequirements"],
+      });
+      return updated.rows[0];
+    });
+    response.json({ scheme });
+  } catch (error) {
+    if (error instanceof HttpError) return response.status(error.status).json({ error: error.message });
+    if ((error as { code?: string }).code === "23505") return response.status(409).json({ error: "Kode skema sudah digunakan." });
+    console.error("Skema gagal diperbarui:", error);
+    response.status(500).json({ error: "Skema belum dapat diperbarui." });
   }
 });
 

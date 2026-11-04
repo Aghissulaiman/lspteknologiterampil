@@ -1,9 +1,5 @@
-"use client";
-
-import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,45 +10,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
-export default function PendaftaranForm() {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    const formData = new FormData(event.currentTarget);
-    const password = String(formData.get("password") ?? "");
-    if (password !== formData.get("confirmPassword")) {
-      setError("Konfirmasi kata sandi tidak sama.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: formData.get("fullName"),
-          nik: formData.get("nik"),
-          phone: formData.get("phone"),
-          email: formData.get("email"),
-          password,
-        }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Pendaftaran tidak berhasil.");
-      router.push("/home/program");
-      router.refresh();
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Terjadi kesalahan. Coba lagi.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+export default function PendaftaranForm({ error }: { error?: string }) {
   return (
     <div 
       className="relative min-h-screen w-full flex flex-col justify-between bg-cover bg-center bg-no-repeat text-foreground overflow-hidden" 
@@ -79,7 +37,8 @@ export default function PendaftaranForm() {
             {/* Form Section */}
             <form
               className="flex flex-col justify-center"
-              onSubmit={handleSubmit}
+              action="/api/auth/register"
+              method="post"
             >
               <FieldGroup className="gap-2.5">
                 {/* Header Branding LSP */}
@@ -212,10 +171,9 @@ export default function PendaftaranForm() {
                 <Field className="pt-1">
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
                     className="w-full h-9 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer shadow-md"
                   >
-                    {isSubmitting ? "Mendaftarkan akun..." : "Daftar Akun Sertifikasi"}
+                    Daftar Akun Sertifikasi
                   </Button>
                 </Field>
 
