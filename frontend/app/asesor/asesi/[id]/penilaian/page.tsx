@@ -67,10 +67,13 @@ export default function PenilaianAsesiPage() {
   }, [loadAssessment]);
 
   const setUnitValue = (unitId: string, patch: Partial<UnitNotes>) => {
-    setUnitNotes((current) => ({
-      ...current,
-      [unitId]: { notes: "", evidenceNotes: "", evidenceDocumentIds: [], ...current[unitId], ...patch },
-    }));
+    setUnitNotes((current) => {
+      const prev = current[unitId] || { notes: "", evidenceNotes: "", evidenceDocumentIds: [] };
+      return {
+        ...current,
+        [unitId]: { ...prev, ...patch },
+      };
+    });
   };
 
   const saveNotes = async (event?: FormEvent<HTMLFormElement>, complete = false) => {

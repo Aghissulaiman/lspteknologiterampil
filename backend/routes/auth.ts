@@ -71,7 +71,7 @@ router.post("/register", async (request, response) => {
     }
 
     setSessionCookie(response, user.id);
-    if (isFormRequest(request)) return response.redirect(303, "/home/program");
+    if (isFormRequest(request)) return response.redirect(303, "/dashboard/profile");
     return response.status(201).json({ user: toPublicUser(result.user) });
   } catch (error) {
     console.error("Pendaftaran gagal:", error);

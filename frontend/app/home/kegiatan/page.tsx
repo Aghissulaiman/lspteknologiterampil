@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Navbar from "@/components/User/AI/Navbar";
-import Footer from "@/components/User/Materi/Footer";
+import Navbar from "@/components/LandingPage/Navbar";
+import Footer from "@/components/LandingPage/Landing/Footer";
 import InformasiKegiatan from "@/components/LandingPage/informasi/Kegiatan/InformasiKegiatan";
 
 export const metadata: Metadata = {

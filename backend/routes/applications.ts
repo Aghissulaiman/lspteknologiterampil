@@ -101,7 +101,7 @@ router.get("/", async (_request, response) => {
   try {
     const result = await getPool().query(
       `SELECT a.id, a.scheme_id, s.code AS scheme_code, s.name AS scheme_name, a.schedule_id,
-              sc.starts_at, sc.ends_at, t.name AS test_site_name, a.status, a.submitted_at,
+              sc.starts_at, sc.ends_at, t.name AS test_site_name, a.status, a.apl01, a.submitted_at,
               a.updated_at, a.final_decision
        FROM certification_applications a
        JOIN certification_schemes s ON s.id = a.scheme_id

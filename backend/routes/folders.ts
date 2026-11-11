@@ -20,12 +20,9 @@ router.post("/", async (request, response) => {
   if (!isPlainObject(request.body)) return response.status(400).json({ error: "Format data tidak valid." });
   const name = cleanString(request.body.name);
   const rawParentId = request.body.parentId;
-  const parentId = rawParentId === null || rawParentId === undefined || rawParentId === "" ? null : rawParentId;
+  const parentId = typeof rawParentId === "string" && rawParentId.trim() ? rawParentId.trim() : null;
   if (name.length < 1 || name.length > 100) {
     return response.status(400).json({ error: "Nama folder harus terdiri dari 1–100 karakter." });
-  }
-  if (parentId !== null && typeof parentId !== "string") {
-    return response.status(400).json({ error: "Folder induk tidak valid." });
   }
 
   try {

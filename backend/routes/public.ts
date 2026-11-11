@@ -67,8 +67,13 @@ router.get("/certificates/:certificateNumber", async (request, response) => {
       return response.status(400).json({ error: "Nomor sertifikat tidak valid." });
     }
     const result = await getPool().query(
-      `SELECT certificate_number, scheme_name, issued_at
-       FROM certificates WHERE lower(certificate_number) = lower($1) LIMIT 1`,
+      `SELECT c.certificate_number, c.scheme_name, c.issued_at,
+              u.full_name AS participant_name, s.code AS scheme_code
+       FROM certificates c
+       JOIN certification_applications a ON a.id = c.application_id
+       JOIN users u ON u.id = a.participant_id
+       LEFT JOIN certification_schemes s ON s.id = a.scheme_id
+       WHERE lower(c.certificate_number) = lower($1) LIMIT 1`,
       [certificateNumber],
     );
     response.set("Cache-Control", "no-store");
