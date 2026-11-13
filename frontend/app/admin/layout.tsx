@@ -186,11 +186,12 @@ import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, LogOut, LayoutDashboard, FileCheck, Building2, CalendarDays, Award, ShieldAlert, Users } from "lucide-react";
+import { Sun, Moon, Menu, X, LogOut, LayoutDashboard, FileCheck, Building2, CalendarDays, Award, ShieldAlert, Users, CreditCard } from "lucide-react";
 import { useTheme } from "next-themes";
 
 const MENU_ITEMS = [
     { icon: LayoutDashboard, label: "Dashboard Admin", desc: "Ringkasan sistem", href: "/admin" },
+    { icon: CreditCard, label: "Verifikasi Pembayaran", desc: "Cek bukti transfer", href: "/admin/pembayaran" },
     { icon: FileCheck, label: "Verifikasi APL", desc: "Cek dokumen peserta", href: "/admin/verifikasi" },
     { icon: Building2, label: "Kelola TUK", desc: "Manajemen lokasi uji", href: "/admin/tuk" },
     { icon: CalendarDays, label: "Skema & Jadwal", desc: "Atur skema & asesor", href: "/admin/skema-jadwal" },
@@ -212,11 +213,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className={`${inter.className}`}>
-            <div className="min-h-screen flex bg-[#F8FAFC] text-[#0A1D37] dark:bg-[#071120] dark:text-slate-100 transition-colors duration-300 font-sans">
+            <div className="h-dvh flex overflow-hidden bg-[#F8FAFC] text-[#0A1D37] dark:bg-[#071120] dark:text-slate-100 transition-colors duration-300 font-sans">
 
                 {/* SIDEBAR KIRI */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 w-80 bg-white lg:sticky lg:top-0 lg:h-screen dark:bg-[#0B192C] border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between transition-transform duration-300 lg:static lg:translate-x-0 print:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    className={`fixed inset-y-0 left-0 z-40 w-80 shrink-0 overflow-y-auto bg-white dark:bg-[#0B192C] border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between transition-transform duration-300 lg:static lg:h-dvh lg:translate-x-0 print:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
                         }`}
                 >
                     <div>
@@ -308,7 +309,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </aside>
 
                 {/* KONTEN UTAMA KANAN */}
-                <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
                     <header className="h-24 bg-white/90 dark:bg-[#0B192C]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-6 sm:px-10 flex items-center justify-between sticky top-0 z-30 print:hidden">
                         <div className="flex items-center gap-4">
                             <button

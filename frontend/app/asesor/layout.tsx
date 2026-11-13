@@ -67,9 +67,9 @@ export default function AsesorLayout({
     ];
 
     return (
-        <div className={`${jakarta.className} min-h-screen bg-background text-foreground flex`}>
+        <div className={`${jakarta.className} h-dvh overflow-hidden bg-background text-foreground flex`}>
             {/* ================= SIDEBAR DESKTOP ================= */}
-            <aside className="hidden lg:flex w-72 flex-col border-r border-border bg-card fixed inset-y-0 z-30">
+            <aside className="hidden lg:flex w-72 flex-col border-r border-border bg-card fixed inset-y-0 z-30 overflow-y-auto">
 
                 {/* Brand Header */}
                 <div className="flex flex-col px-6 py-5 border-b border-border">
@@ -193,7 +193,7 @@ export default function AsesorLayout({
             )}
 
             {/* ================= MAIN CONTENT AREA ================= */}
-            <div className="flex-1 flex flex-col lg:pl-72">
+            <div className="flex-1 min-h-0 flex flex-col overflow-y-auto lg:pl-72">
                 {/* Top Navbar Header */}
                 <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-border bg-background/95 px-4 sm:px-8 backdrop-blur-md">
                     <div className="flex items-center gap-3">

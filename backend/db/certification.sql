@@ -295,3 +295,41 @@ CREATE INDEX IF NOT EXISTS audit_logs_entity_idx
   ON audit_logs (entity_type, entity_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS audit_logs_actor_idx
   ON audit_logs (actor_id, created_at DESC);
+
+DO $doc_category_constraint$
+BEGIN
+  ALTER TABLE stored_documents DROP CONSTRAINT IF EXISTS stored_documents_category_check;
+  ALTER TABLE stored_documents ADD CONSTRAINT stored_documents_category_check CHECK (category IN ('administrative', 'portfolio', 'tuk', 'payment'));
+EXCEPTION WHEN duplicate_object THEN
+  NULL;
+END
+$doc_category_constraint$;
+
+CREATE TABLE IF NOT EXISTS scheme_payments (
+  id uuid PRIMARY KEY,
+  application_id uuid NOT NULL REFERENCES certification_applications (id) ON DELETE CASCADE,
+  participant_id uuid NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
+  amount varchar(50) NOT NULL DEFAULT '',
+  bank_name varchar(100) NOT NULL DEFAULT 'BCA',
+  account_number varchar(50) NOT NULL DEFAULT '8730921829',
+  account_holder varchar(200) NOT NULL DEFAULT 'LSP TEKNOLOGI TERAMPIL',
+  sender_bank varchar(100) NOT NULL DEFAULT '',
+  sender_account_name varchar(200) NOT NULL DEFAULT '',
+  sender_account_number varchar(50) NOT NULL DEFAULT '',
+  transfer_amount varchar(50) NOT NULL DEFAULT '',
+  proof_document_id uuid REFERENCES stored_documents (id) ON DELETE SET NULL,
+  status varchar(50) NOT NULL DEFAULT 'pending_payment'
+    CHECK (status IN ('pending_payment', 'proof_uploaded', 'approved', 'rejected')),
+  notes text NOT NULL DEFAULT '',
+  rejection_reason text NOT NULL DEFAULT '',
+  cs_whatsapp varchar(50) NOT NULL DEFAULT '+6281298765432',
+  reviewed_by uuid REFERENCES users (id) ON DELETE SET NULL,
+  reviewed_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS scheme_payments_application_idx ON scheme_payments (application_id);
+CREATE INDEX IF NOT EXISTS scheme_payments_participant_idx ON scheme_payments (participant_id);
+CREATE INDEX IF NOT EXISTS scheme_payments_status_idx ON scheme_payments (status);
+

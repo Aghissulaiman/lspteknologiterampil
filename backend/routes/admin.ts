@@ -27,15 +27,25 @@ function dateValue(value: unknown, name: string) {
 
 router.get("/applications", async (request, response) => {
   const status = cleanString(request.query.status);
+  const schemeId = cleanString(request.query.schemeId);
   try {
     const result = await getPool().query(
-      `SELECT a.id, a.status, a.submitted_at, a.updated_at, a.final_decision, u.id AS participant_id, u.full_name AS participant_name,
+      `SELECT a.id, a.status, a.submitted_at, a.updated_at, a.final_decision, a.apl01,
+              u.id AS participant_id, u.full_name AS participant_name, u.email AS participant_email, u.nik AS participant_nik, u.phone AS participant_phone,
               s.id AS scheme_id, s.code AS scheme_code, s.name AS scheme_name, sc.starts_at, sc.ends_at, t.name AS test_site_name,
-              x.assessor_id, assessor.full_name AS assessor_name, x.recommendation
-       FROM certification_applications a JOIN users u ON u.id = a.participant_id JOIN certification_schemes s ON s.id = a.scheme_id
-       JOIN assessment_schedules sc ON sc.id = a.schedule_id JOIN test_sites t ON t.id = sc.test_site_id
-       LEFT JOIN assessments x ON x.application_id = a.id LEFT JOIN users assessor ON assessor.id = x.assessor_id
-       WHERE ($1 = '' OR a.status = $1) ORDER BY a.created_at DESC LIMIT 500`, [status]);
+              x.assessor_id, assessor.full_name AS assessor_name, x.recommendation,
+              pay.status AS payment_status
+       FROM certification_applications a
+       JOIN users u ON u.id = a.participant_id
+       JOIN certification_schemes s ON s.id = a.scheme_id
+       JOIN assessment_schedules sc ON sc.id = a.schedule_id
+       JOIN test_sites t ON t.id = sc.test_site_id
+       LEFT JOIN assessments x ON x.application_id = a.id
+       LEFT JOIN users assessor ON assessor.id = x.assessor_id
+       LEFT JOIN scheme_payments pay ON pay.application_id = a.id
+       WHERE ($1 = '' OR a.status = $1)
+         AND ($2 = '' OR s.id::text = $2)
+       ORDER BY a.created_at DESC LIMIT 500`, [status, schemeId]);
     response.set("Cache-Control", "private, no-store").json({ applications: result.rows });
   } catch (error) {
     console.error("Daftar permohonan admin gagal dimuat:", error);
@@ -80,10 +90,19 @@ router.get("/applications/:applicationId", async (request, response) => {
       ? application.rows[0].submission_snapshot.apl02 as Array<{ unitId: string; code: string; title: string }>
       : [];
     const submittedUnitById = new Map<string, { unitId: string; code: string; title: string }>(submittedUnits.map((unit) => [unit.unitId, unit] as const));
-    const apl02Rows = apl02.rows.map((row: { unit_id: string; code: string; title: string }) => {
-      const submittedUnit = submittedUnitById.get(row.unit_id);
-      return submittedUnit ? { ...row, code: submittedUnit.code, title: submittedUnit.title } : row;
-    });
+    const apl02Rows = apl02.rows.length > 0
+      ? apl02.rows.map((row: { unit_id: string; code: string; title: string }) => {
+          const submittedUnit = submittedUnitById.get(row.unit_id);
+          return submittedUnit ? { ...row, code: submittedUnit.code, title: submittedUnit.title } : row;
+        })
+      : submittedUnits.map((u) => ({
+          unit_id: u.unitId,
+          code: u.code,
+          title: u.title,
+          self_assessment: "pending_assessor",
+          notes: "",
+          evidence: [],
+        }));
     response.set("Cache-Control", "private, no-store").json({ application: application.rows[0], documents: docs.rows, apl02: apl02Rows, history: history.rows, assessment: assessment.rows[0] ?? null, certificate: certificate.rows[0] ?? null });
   } catch (error) {
     console.error("Detail permohonan admin gagal dimuat:", error);
@@ -119,20 +138,14 @@ router.post("/applications/:applicationId/verify", async (request, response) => 
       const row = await client.query("SELECT status, scheme_id, submission_snapshot FROM certification_applications WHERE id = $1 FOR UPDATE", [applicationId]);
       if (!row.rowCount) throw new HttpError(404, "Permohonan tidak ditemukan.");
       if (row.rows[0].status !== "submitted") throw new HttpError(409, "Hanya permohonan submitted yang dapat diverifikasi.");
-      const [currentRequirements, docs, currentUnits, answers] = await Promise.all([
+      const [currentRequirements, docs] = await Promise.all([
         client.query("SELECT code, category FROM scheme_document_requirements WHERE scheme_id = $1 AND is_required = true", [row.rows[0].scheme_id]),
         client.query("SELECT document_type, category FROM stored_documents WHERE application_id = $1", [applicationId]),
-        client.query("SELECT id FROM competency_units WHERE scheme_id = $1 AND is_active = true", [row.rows[0].scheme_id]),
-        client.query("SELECT unit_id FROM application_apl02 WHERE application_id = $1", [applicationId]),
       ]);
       const snapshot = row.rows[0].submission_snapshot ?? {};
       const requiredDocuments = Array.isArray(snapshot.requiredDocuments) ? snapshot.requiredDocuments : currentRequirements.rows;
-      const snapshotUnits = Array.isArray(snapshot.apl02) ? snapshot.apl02 as Array<{ unitId: string }> : [];
-      const expectedUnitIds = snapshotUnits.length ? snapshotUnits.map((unit) => unit.unitId) : currentUnits.rows.map((unit: { id: string }) => unit.id);
-      const answerIds = answers.rows.map((answer: { unit_id: string }) => answer.unit_id);
       const missingDocs = requiredDocuments.filter((item: { code: string; category: string }) => !docs.rows.some((doc: { document_type: string; category: string }) => doc.document_type === item.code && doc.category === item.category));
       if (missingDocs.length) throw new HttpError(409, "Dokumen wajib belum lengkap.", { missingDocuments: missingDocs.map((row: { code: string; category: string }) => ({ code: row.code, category: row.category })) });
-      if (expectedUnitIds.length < 1 || expectedUnitIds.length !== answerIds.length || expectedUnitIds.some((unitId) => !answerIds.includes(unitId))) throw new HttpError(409, "Jawaban APL-02 belum lengkap.");
       await client.query("UPDATE certification_applications SET status = 'verified', updated_at = now() WHERE id = $1", [applicationId]);
       await recordApplicationStatus(client, applicationId, authUser(response), "submitted", "verified", null, "application.verified");
     });
@@ -451,13 +464,18 @@ router.post("/test-sites", async (request, response) => {
     const name = requiredText(request.body.name, "Nama TUK", 200);
     const address = requiredText(request.body.address, "Alamat", 2000);
     const phone = requiredText(request.body.phone, "Telepon", 30);
-    const email = requiredText(request.body.email, "Email", 254);
+    const email = cleanString(request.body.email);
+    if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      throw new HttpError(400, "Format email TUK tidak valid.");
+    }
     const siteType = requiredText(request.body.siteType, "Jenis TUK", 100);
-    const contactPerson = requiredText(request.body.contactPerson, "Penanggung jawab", 200);
+    const contactPerson = cleanString(request.body.contactPerson);
     const checklist = request.body.checklist ?? {};
     const schemeIds = request.body.schemeIds;
     if (!isPlainObject(checklist)) throw new HttpError(400, "checklist harus berupa objek.");
-    if (!Array.isArray(schemeIds) || !schemeIds.length || schemeIds.some((id) => !isUuid(id)) || new Set(schemeIds).size !== schemeIds.length) throw new HttpError(400, "schemeIds harus berisi skema aktif yang unik.");
+    if (!Array.isArray(schemeIds) || !schemeIds.length || schemeIds.some((id) => !isUuid(id)) || new Set(schemeIds).size !== schemeIds.length) {
+      throw new HttpError(400, "Pilih minimal satu skema sertifikasi yang didukung TUK.");
+    }
     const site = await inTransaction(async (client) => {
       const schemes = await client.query("SELECT id FROM certification_schemes WHERE id = ANY($1::uuid[]) AND is_active = true", [schemeIds]);
       if (schemes.rowCount !== schemeIds.length) throw new HttpError(400, "Satu atau lebih skema tidak aktif atau tidak ditemukan.");
@@ -489,9 +507,12 @@ router.patch("/test-sites/:testSiteId", async (request, response) => {
       const name = request.body.name !== undefined ? requiredText(request.body.name, "Nama TUK", 200) : old.name;
       const address = request.body.address !== undefined ? requiredText(request.body.address, "Alamat", 2000) : old.address;
       const phone = request.body.phone !== undefined ? requiredText(request.body.phone, "Telepon", 30) : old.phone;
-      const email = request.body.email !== undefined ? requiredText(request.body.email, "Email", 254) : old.email;
+      const email = request.body.email !== undefined ? cleanString(request.body.email) : old.email;
+      if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+        throw new HttpError(400, "Format email TUK tidak valid.");
+      }
       const siteType = request.body.siteType !== undefined ? requiredText(request.body.siteType, "Jenis TUK", 100) : old.site_type;
-      const contactPerson = request.body.contactPerson !== undefined ? requiredText(request.body.contactPerson, "Penanggung jawab", 200) : old.contact_person;
+      const contactPerson = request.body.contactPerson !== undefined ? cleanString(request.body.contactPerson) : old.contact_person;
       const checklist = request.body.checklist !== undefined ? request.body.checklist : old.checklist;
       if (!isPlainObject(checklist)) throw new HttpError(400, "checklist harus berupa objek.");
       const isActive = request.body.isActive !== undefined ? request.body.isActive : old.is_active;
@@ -662,6 +683,103 @@ router.get("/applications/:applicationId/documents/:documentId", async (request,
     response.download(privateFilePath(doc.storage_key), safeName(doc.original_name), (error) => { if (error && !response.headersSent) response.status(404).json({ error: "Dokumen tidak ditemukan." }); });
   } catch (error) {
     console.error("Dokumen permohonan gagal diunduh:", error);
+    if (!response.headersSent) response.status(500).json({ error: "Dokumen belum dapat diunduh." });
+  }
+});
+
+router.get("/payments", async (request, response) => {
+  const status = cleanString(request.query.status);
+  try {
+    const result = await getPool().query(
+      `SELECT p.*,
+              u.full_name AS participant_name, u.email AS participant_email, u.nik AS participant_nik, u.phone AS participant_phone,
+              s.id AS scheme_id, s.code AS scheme_code, s.name AS scheme_name,
+              d.original_name AS proof_original_name, d.mime_type AS proof_mime_type, d.size_bytes AS proof_size_bytes,
+              rev.full_name AS reviewer_name
+       FROM scheme_payments p
+       JOIN users u ON u.id = p.participant_id
+       JOIN certification_applications a ON a.id = p.application_id
+       JOIN certification_schemes s ON s.id = a.scheme_id
+       LEFT JOIN stored_documents d ON d.id = p.proof_document_id
+       LEFT JOIN users rev ON rev.id = p.reviewed_by
+       WHERE ($1 = '' OR p.status = $1)
+       ORDER BY p.updated_at DESC LIMIT 500`,
+      [status],
+    );
+    response.set("Cache-Control", "private, no-store").json({ payments: result.rows });
+  } catch (error) {
+    console.error("Daftar pembayaran admin gagal dimuat:", error);
+    response.status(500).json({ error: "Daftar pembayaran belum dapat dimuat." });
+  }
+});
+
+router.post("/payments/:paymentId/approve", async (request, response) => {
+  const { paymentId } = request.params;
+  if (!isUuid(paymentId)) return response.status(404).json({ error: "Pembayaran tidak ditemukan." });
+  try {
+    await inTransaction(async (client) => {
+      const row = await client.query("SELECT id, application_id, status FROM scheme_payments WHERE id = $1 FOR UPDATE", [paymentId]);
+      if (!row.rowCount) throw new HttpError(404, "Pembayaran tidak ditemukan.");
+      await client.query(
+        "UPDATE scheme_payments SET status = 'approved', reviewed_by = $2, reviewed_at = now(), updated_at = now() WHERE id = $1",
+        [paymentId, authUser(response).id],
+      );
+      await audit(client, authUser(response), "payment.approved", "scheme_payment", paymentId, { applicationId: row.rows[0].application_id });
+    });
+    response.json({ ok: true, status: "approved" });
+  } catch (error) {
+    if (error instanceof HttpError) return response.status(error.status).json({ error: error.message });
+    console.error("Persetujuan pembayaran gagal:", error);
+    response.status(500).json({ error: "Persetujuan pembayaran belum dapat diproses." });
+  }
+});
+
+router.post("/payments/:paymentId/reject", async (request, response) => {
+  const { paymentId } = request.params;
+  if (!isUuid(paymentId) || !isPlainObject(request.body)) return response.status(400).json({ error: "Permintaan tidak valid." });
+  const reason = cleanString(request.body.reason);
+  if (!reason || reason.length > 2000) return response.status(400).json({ error: "Alasan penolakan wajib diisi (maksimal 2000 karakter)." });
+  try {
+    await inTransaction(async (client) => {
+      const row = await client.query("SELECT id, application_id, status FROM scheme_payments WHERE id = $1 FOR UPDATE", [paymentId]);
+      if (!row.rowCount) throw new HttpError(404, "Pembayaran tidak ditemukan.");
+      await client.query(
+        "UPDATE scheme_payments SET status = 'rejected', rejection_reason = $2, reviewed_by = $3, reviewed_at = now(), updated_at = now() WHERE id = $1",
+        [paymentId, reason, authUser(response).id],
+      );
+      await audit(client, authUser(response), "payment.rejected", "scheme_payment", paymentId, { applicationId: row.rows[0].application_id, reason });
+    });
+    response.json({ ok: true, status: "rejected" });
+  } catch (error) {
+    if (error instanceof HttpError) return response.status(error.status).json({ error: error.message });
+    console.error("Penolakan pembayaran gagal:", error);
+    response.status(500).json({ error: "Penolakan pembayaran belum dapat diproses." });
+  }
+});
+
+router.get("/payments/:paymentId/proof", async (request, response) => {
+  const { paymentId } = request.params;
+  if (!isUuid(paymentId)) return response.status(404).json({ error: "Pembayaran tidak ditemukan." });
+  try {
+    const result = await getPool().query(
+      `SELECT d.storage_key, d.original_name, d.mime_type
+       FROM scheme_payments p
+       JOIN stored_documents d ON d.id = p.proof_document_id
+       WHERE p.id = $1`,
+      [paymentId],
+    );
+    if (!result.rowCount) return response.status(404).json({ error: "Dokumen bukti tidak ditemukan." });
+    const doc = result.rows[0];
+    response.set({
+      "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Type": doc.mime_type,
+    });
+    response.download(privateFilePath(doc.storage_key), safeName(doc.original_name), (error) => {
+      if (error && !response.headersSent) response.status(404).json({ error: "Dokumen tidak ditemukan." });
+    });
+  } catch (error) {
+    console.error("Dokumen bukti pembayaran gagal diunduh:", error);
     if (!response.headersSent) response.status(500).json({ error: "Dokumen belum dapat diunduh." });
   }
 });

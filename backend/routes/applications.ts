@@ -102,11 +102,13 @@ router.get("/", async (_request, response) => {
     const result = await getPool().query(
       `SELECT a.id, a.scheme_id, s.code AS scheme_code, s.name AS scheme_name, a.schedule_id,
               sc.starts_at, sc.ends_at, t.name AS test_site_name, a.status, a.apl01, a.submitted_at,
-              a.updated_at, a.final_decision
+              a.updated_at, a.final_decision,
+              pay.status AS payment_status, pay.amount AS payment_amount
        FROM certification_applications a
        JOIN certification_schemes s ON s.id = a.scheme_id
        JOIN assessment_schedules sc ON sc.id = a.schedule_id
        JOIN test_sites t ON t.id = sc.test_site_id
+       LEFT JOIN scheme_payments pay ON pay.application_id = a.id
        WHERE a.participant_id = $1 ORDER BY a.created_at DESC`,
       [authUser(response).id],
     );
@@ -127,7 +129,7 @@ router.post("/", async (request, response) => {
     const applicationId = newId();
     const result = await inTransaction(async (client) => {
       const schedule = await client.query(
-        `SELECT s.id, s.scheme_id FROM assessment_schedules s
+        `SELECT s.id, s.scheme_id, cs.requirements FROM assessment_schedules s
          JOIN certification_schemes cs ON cs.id = s.scheme_id AND cs.is_active = true AND cs.is_public = true
          JOIN test_sites t ON t.id = s.test_site_id AND t.is_active = true
          JOIN test_site_schemes ts ON ts.test_site_id = t.id AND ts.scheme_id = s.scheme_id
@@ -137,11 +139,22 @@ router.post("/", async (request, response) => {
       );
       if (!schedule.rowCount) throw new HttpError(404, "Jadwal aktif untuk skema tersebut tidak ditemukan.");
 
+      const schemeReq = (schedule.rows[0].requirements as Record<string, unknown>) || {};
+      const price = typeof schemeReq.price === "string" ? schemeReq.price : "Rp 1.000.000";
+
       await client.query(
         `INSERT INTO certification_applications (id, participant_id, scheme_id, schedule_id, apl01)
          VALUES ($1, $2, $3, $4, $5::jsonb)`,
         [applicationId, authUser(response).id, body.schemeId, body.scheduleId, JSON.stringify(isPlainObject(body.apl01) ? body.apl01 : {})],
       );
+
+      const paymentId = newId();
+      await client.query(
+        `INSERT INTO scheme_payments (id, application_id, participant_id, amount, bank_name, account_number, account_holder, cs_whatsapp, status)
+         VALUES ($1, $2, $3, $4, 'BCA', '8730921829', 'LSP TEKNOLOGI TERAMPIL', '+6281298765432', 'pending_payment')`,
+        [paymentId, applicationId, authUser(response).id, price],
+      );
+
       await recordApplicationStatus(client, applicationId, authUser(response), "", "draft", null, "application.draft_created", {
         schemeId: body.schemeId,
         scheduleId: body.scheduleId,
@@ -174,7 +187,7 @@ router.get("/:applicationId", async (request, response) => {
       [applicationId, authUser(response).id],
     );
     if (!application.rowCount) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
-    const [documents, selfAssessment, history, assessment, certificate] = await Promise.all([
+    const [documents, selfAssessment, history, assessment, certificate, payment] = await Promise.all([
       pool.query(
         `SELECT id, document_type, category, original_name, mime_type, size_bytes, created_at
          FROM stored_documents WHERE application_id = $1 ORDER BY created_at, id`,
@@ -208,15 +221,30 @@ router.get("/:applicationId", async (request, response) => {
         `SELECT certificate_number, scheme_name, issued_at FROM certificates WHERE application_id = $1`,
         [applicationId],
       ),
+      pool.query(
+        `SELECT p.*, d.original_name AS proof_original_name, d.mime_type AS proof_mime_type
+         FROM scheme_payments p LEFT JOIN stored_documents d ON d.id = p.proof_document_id
+         WHERE p.application_id = $1`,
+        [applicationId],
+      ),
     ]);
     const submittedUnits = Array.isArray(application.rows[0].submission_snapshot?.apl02)
       ? application.rows[0].submission_snapshot.apl02 as Array<{ unitId: string; code: string; title: string }>
       : [];
     const submittedUnitById = new Map(submittedUnits.map((unit) => [unit.unitId, unit]));
-    const apl02Rows = selfAssessment.rows.map((row: { unit_id: string; unit_code: string; unit_title: string }) => {
-      const submittedUnit = submittedUnitById.get(row.unit_id);
-      return submittedUnit ? { ...row, unit_code: submittedUnit.code, unit_title: submittedUnit.title } : row;
-    });
+    const apl02Rows = selfAssessment.rows.length > 0
+      ? selfAssessment.rows.map((row: { unit_id: string; unit_code: string; unit_title: string }) => {
+          const submittedUnit = submittedUnitById.get(row.unit_id);
+          return submittedUnit ? { ...row, unit_code: submittedUnit.code, unit_title: submittedUnit.title } : row;
+        })
+      : submittedUnits.map((u) => ({
+          unit_id: u.unitId,
+          unit_code: u.code,
+          unit_title: u.title,
+          self_assessment: "pending_assessor",
+          notes: "",
+          evidence: [],
+        }));
     response.set("Cache-Control", "private, no-store").json({
       application: {
         ...application.rows[0],
@@ -225,11 +253,160 @@ router.get("/:applicationId", async (request, response) => {
         statusHistory: history.rows,
         assessment: assessment.rows[0] ?? null,
         certificate: certificate.rows[0] ?? null,
+        payment: payment.rows[0] ?? null,
       },
     });
   } catch (error) {
     console.error("Detail permohonan gagal dimuat:", error);
     response.status(500).json({ error: "Permohonan belum dapat dimuat." });
+  }
+});
+
+router.get("/:applicationId/payment", async (request, response) => {
+  const { applicationId } = request.params;
+  if (!isUuid(applicationId)) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
+  try {
+    const pool = getPool();
+    const app = await pool.query(
+      `SELECT a.id, a.scheme_id, a.status, s.name AS scheme_name, s.code AS scheme_code, s.requirements,
+              sc.starts_at, sc.ends_at, t.name AS test_site_name
+       FROM certification_applications a
+       JOIN certification_schemes s ON s.id = a.scheme_id
+       JOIN assessment_schedules sc ON sc.id = a.schedule_id
+       JOIN test_sites t ON t.id = sc.test_site_id
+       WHERE a.id = $1 AND a.participant_id = $2`,
+      [applicationId, authUser(response).id],
+    );
+    if (!app.rowCount) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
+
+    let payment = await pool.query(
+      `SELECT p.*, d.original_name AS proof_original_name, d.mime_type AS proof_mime_type, d.size_bytes AS proof_size_bytes
+       FROM scheme_payments p
+       LEFT JOIN stored_documents d ON d.id = p.proof_document_id
+       WHERE p.application_id = $1`,
+      [applicationId],
+    );
+
+    if (!payment.rowCount) {
+      const paymentId = newId();
+      const schemeReq = (app.rows[0].requirements as Record<string, unknown>) || {};
+      const price = typeof schemeReq.price === "string" ? schemeReq.price : "Rp 1.000.000";
+      await pool.query(
+        `INSERT INTO scheme_payments (id, application_id, participant_id, amount, bank_name, account_number, account_holder, cs_whatsapp, status)
+         VALUES ($1, $2, $3, $4, 'BCA', '8730921829', 'LSP TEKNOLOGI TERAMPIL', '+6281298765432', 'pending_payment')`,
+        [paymentId, applicationId, authUser(response).id, price],
+      );
+      payment = await pool.query(
+        `SELECT p.*, d.original_name AS proof_original_name, d.mime_type AS proof_mime_type, d.size_bytes AS proof_size_bytes
+         FROM scheme_payments p
+         LEFT JOIN stored_documents d ON d.id = p.proof_document_id
+         WHERE p.application_id = $1`,
+        [applicationId],
+      );
+    }
+
+    response.set("Cache-Control", "private, no-store").json({
+      application: app.rows[0],
+      payment: payment.rows[0],
+    });
+  } catch (error) {
+    console.error("Data pembayaran gagal dimuat:", error);
+    response.status(500).json({ error: "Data pembayaran belum dapat dimuat." });
+  }
+});
+
+router.post("/:applicationId/payment/proof", upload.single("proof"), async (request, response) => {
+  const { applicationId } = request.params;
+  if (!isUuid(applicationId)) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
+  const file = request.file;
+  if (!file) return response.status(400).json({ error: "Berkas bukti transfer wajib diunggah." });
+
+  const senderBank = cleanString(request.body.senderBank);
+  const senderAccountName = cleanString(request.body.senderAccountName);
+  const senderAccountNumber = cleanString(request.body.senderAccountNumber);
+  const transferAmount = cleanString(request.body.transferAmount);
+  const notes = cleanString(request.body.notes);
+
+  if (!senderBank || !senderAccountName) {
+    return response.status(400).json({ error: "Nama bank pengirim dan nama pemilik rekening pengirim wajib diisi." });
+  }
+
+  let savedFile: Awaited<ReturnType<typeof savePrivateUpload>> | undefined;
+  try {
+    const documentId = newId();
+    savedFile = await savePrivateUpload(file);
+
+    await inTransaction(async (client) => {
+      const app = await client.query(
+        "SELECT id, status FROM certification_applications WHERE id = $1 AND participant_id = $2 FOR UPDATE",
+        [applicationId, authUser(response).id],
+      );
+      if (!app.rowCount) throw new HttpError(404, "Permohonan tidak ditemukan.");
+
+      await client.query(
+        `INSERT INTO stored_documents (id, uploaded_by, application_id, document_type, category, original_name, mime_type, size_bytes, storage_key)
+         VALUES ($1, $2, $3, 'payment_proof', 'payment', $4, $5, $6, $7)`,
+        [documentId, authUser(response).id, applicationId, safeOriginalName(file.originalname), savedFile!.mimeType, savedFile!.sizeBytes, savedFile!.storageKey],
+      );
+
+      const payExists = await client.query("SELECT id FROM scheme_payments WHERE application_id = $1", [applicationId]);
+      if (payExists.rowCount) {
+        await client.query(
+          `UPDATE scheme_payments
+           SET proof_document_id = $2,
+               sender_bank = $3,
+               sender_account_name = $4,
+               sender_account_number = $5,
+               transfer_amount = $6,
+               notes = $7,
+               status = 'proof_uploaded',
+               rejection_reason = '',
+               updated_at = now()
+           WHERE application_id = $1`,
+          [applicationId, documentId, senderBank, senderAccountName, senderAccountNumber, transferAmount, notes],
+        );
+      } else {
+        await client.query(
+          `INSERT INTO scheme_payments (id, application_id, participant_id, proof_document_id, sender_bank, sender_account_name, sender_account_number, transfer_amount, notes, status, bank_name, account_number, account_holder, cs_whatsapp)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'proof_uploaded', 'BCA', '8730921829', 'LSP TEKNOLOGI TERAMPIL', '+6281298765432')`,
+          [newId(), applicationId, authUser(response).id, documentId, senderBank, senderAccountName, senderAccountNumber, transferAmount, notes],
+        );
+      }
+
+      await audit(client, authUser(response), "payment.proof_uploaded", "application", applicationId, {
+        documentId,
+        senderBank,
+        senderAccountName,
+      });
+    });
+
+    response.status(201).json({ ok: true, message: "Bukti transfer berhasil diunggah. Menunggu verifikasi admin." });
+  } catch (error) {
+    if (savedFile?.storageKey) {
+      await removePrivateUpload(savedFile.storageKey).catch(() => {});
+    }
+    if (error instanceof HttpError) return response.status(error.status).json({ error: error.message });
+    console.error("Gagal mengunggah bukti pembayaran:", error);
+    response.status(500).json({ error: "Gagal mengunggah bukti pembayaran." });
+  }
+});
+
+router.get("/:applicationId/payment/proof-file", async (request, response) => {
+  const { applicationId } = request.params;
+  if (!isUuid(applicationId)) return response.status(404).json({ error: "Permohonan tidak ditemukan." });
+  try {
+    const result = await getPool().query(
+      `SELECT d.storage_key, d.original_name, d.mime_type
+       FROM scheme_payments p
+       JOIN stored_documents d ON d.id = p.proof_document_id
+       WHERE p.application_id = $1 AND p.participant_id = $2`,
+      [applicationId, authUser(response).id],
+    );
+    if (!result.rowCount) return response.status(404).json({ error: "Bukti pembayaran tidak ditemukan." });
+    await sendStoredDocument(response, result.rows[0]);
+  } catch (error) {
+    console.error("Bukti pembayaran gagal dimuat:", error);
+    response.status(500).json({ error: "Bukti pembayaran gagal dimuat." });
   }
 });
 
@@ -489,6 +666,14 @@ router.post("/:applicationId/submit", async (request, response) => {
         throw new HttpError(409, "Permohonan tidak berada pada status yang dapat dikirim.");
       }
 
+      const paymentCheck = await client.query(
+        "SELECT id, status FROM scheme_payments WHERE application_id = $1",
+        [applicationId],
+      );
+      if (paymentCheck.rowCount && paymentCheck.rows[0].status !== "approved") {
+        throw new HttpError(409, "Pembayaran pendaftaran skema belum disetujui oleh admin.");
+      }
+
       const aplErrors = validateApl01(application.apl01);
       if (cleanString(application.apl01?.nik).replace(/\s/g, "") !== application.account_nik) aplErrors.push("NIK APL-01 harus sesuai dengan NIK akun peserta.");
       const schemeRequirements = application.scheme_requirements ?? {};
@@ -516,9 +701,6 @@ router.post("/:applicationId/submit", async (request, response) => {
          WHERE r.application_id = $1 GROUP BY r.application_id, r.unit_id`,
         [applicationId],
       );
-      if (answers.rowCount !== units.rowCount || units.rows.some((unit: { id: string }) => !answers.rows.some((answer: { unit_id: string }) => answer.unit_id === unit.id))) {
-        throw new HttpError(400, "APL-02 harus memiliki jawaban untuk setiap unit kompetensi.");
-      }
 
       const requiredDocs = await client.query(
         `SELECT code, label, category FROM scheme_document_requirements WHERE scheme_id = $1 AND is_required = true`,

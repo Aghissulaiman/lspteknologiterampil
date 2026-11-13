@@ -29,6 +29,7 @@ type ApplicationDetail = {
     decision_note: string | null;
     submitted_at: string | null;
     certificate: CertificateData | null;
+    payment?: { status: string; amount?: string; sender_bank?: string } | null;
     apl01?: Record<string, string>;
 };
 
@@ -148,6 +149,30 @@ export default function StatusPage() {
     const getStatusInfo = (status: string) => {
         switch (status) {
             case "draft":
+                if (application.payment?.status === "pending_payment") {
+                    return {
+                        label: "Menunggu Pembayaran Pendaftaran",
+                        desc: "Silakan lakukan transfer manual biaya pendaftaran dan unggah bukti transfer agar permohonan Anda dapat diverifikasi oleh admin.",
+                        color: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border border-blue-200",
+                        action: (
+                            <Link href={`/dashboard/pembayaran?applicationId=${application.id}`} className="apl-button text-xs py-2 px-4 inline-block mt-3">
+                                Lakukan Pembayaran & Upload Bukti →
+                            </Link>
+                        ),
+                    };
+                }
+                if (application.payment?.status === "proof_uploaded") {
+                    return {
+                        label: "Bukti Pembayaran Sedang Diverifikasi",
+                        desc: "Bukti transfer Anda telah dikirim dan sedang diverifikasi oleh admin LSP. Sembari menunggu, Anda dapat melengkapi draf APL.",
+                        color: "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200 border border-amber-200",
+                        action: (
+                            <Link href={`/dashboard/pembayaran?applicationId=${application.id}`} className="apl-button text-xs py-2 px-4 inline-block mt-3">
+                                Cek Status Pembayaran →
+                            </Link>
+                        ),
+                    };
+                }
                 return {
                     label: "Draf Permohonan",
                     desc: "Permohonan Anda masih berupa draf. Silakan lengkapi berkas persyaratan dan asesmen mandiri di formulir APL.",

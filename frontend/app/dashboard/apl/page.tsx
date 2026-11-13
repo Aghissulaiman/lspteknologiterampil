@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, CheckCircle2, FileText, Loader2, Trash2, Upload, ExternalLink, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, CheckCircle2, FileText, Loader2, Trash2, Upload, ArrowRight, ShieldCheck, Award } from "lucide-react";
 
 type StoredDoc = {
     id: string;
@@ -27,14 +28,6 @@ type DocumentRequirement = {
     is_required: boolean;
 };
 
-type Apl02UnitResult = {
-    unit_id: string;
-    unit_code: string;
-    unit_title: string;
-    self_assessment: "competent" | "not_competent";
-    notes: string;
-};
-
 type ApplicationData = {
     id: string;
     scheme_id: string;
@@ -45,7 +38,7 @@ type ApplicationData = {
     ends_at: string;
     test_site_name: string;
     documents: StoredDoc[];
-    apl02: Apl02UnitResult[];
+    payment?: { status: string; amount?: string } | null;
 };
 
 function AplContent() {
@@ -58,17 +51,52 @@ function AplContent() {
     const [docRequirements, setDocRequirements] = useState<DocumentRequirement[]>([]);
     const [units, setUnits] = useState<CompetencyUnit[]>([]);
 
-    // State asesmen mandiri per unit (unitId -> { selfAssessment, notes })
-    const [selfAssessments, setSelfAssessments] = useState<
-        Record<string, { selfAssessment: "competent" | "not_competent"; notes: string }>
-    >({});
-
     const [loading, setLoading] = useState(true);
     const [uploadingDocType, setUploadingDocType] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [savingDraft, setSavingDraft] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [successNotice, setSuccessNotice] = useState("");
+    const [syncingProfile, setSyncingProfile] = useState(false);
+
+    // Sync ulang APL-01 dari localStorage ke server
+    const handleSyncProfile = async () => {
+        if (!applicationId) return;
+        setSyncingProfile(true);
+        setErrorMessage("");
+        setSuccessNotice("");
+        try {
+            const localData = localStorage.getItem("apl01_draft");
+            if (!localData) throw new Error("Data profil belum ditemukan di perangkat ini. Silakan kembali ke halaman Profil & Biodata lalu simpan ulang.");
+            const parsed = JSON.parse(localData) as Record<string, unknown>;
+            // Normalisasi field
+            const apl01Payload = {
+                ...parsed,
+                educationLevel: parsed.educationLevel || parsed.education || "",
+                institution: parsed.institution || parsed.schoolName || "",
+                studyProgram: parsed.studyProgram || parsed.major || "",
+                employment: parsed.employment || (
+                    parsed.jobStatus === "Bekerja"
+                        ? `${String(parsed.jobTitle || "")} di ${String(parsed.companyName || "")}`.trim()
+                        : String(parsed.jobStatus || "")
+                ),
+            };
+            const res = await fetch(`/api/applications/${applicationId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ apl01: apl01Payload }),
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Gagal menyinkronkan data profil.");
+            }
+            setSuccessNotice("Data profil (APL-01) berhasil disinkronkan ke server. Silakan coba kirim permohonan kembali.");
+        } catch (err) {
+            setErrorMessage(err instanceof Error ? err.message : "Gagal sinkronisasi data profil.");
+        } finally {
+            setSyncingProfile(false);
+        }
+    };
 
     // 1. Cari atau validasi applicationId
     useEffect(() => {
@@ -118,17 +146,6 @@ function AplContent() {
                         setDocRequirements(schemeData.documentRequirements || []);
                         const unitList = schemeData.competencyUnits || [];
                         setUnits(unitList);
-
-                        // Inisialisasi state asesmen mandiri
-                        const initialAssessment: Record<string, { selfAssessment: "competent" | "not_competent"; notes: string }> = {};
-                        for (const u of unitList) {
-                            const existing = appDetail.apl02?.find((row) => row.unit_id === u.id);
-                            initialAssessment[u.id] = {
-                                selfAssessment: existing?.self_assessment || "competent",
-                                notes: existing?.notes || "",
-                            };
-                        }
-                        setSelfAssessments(initialAssessment);
                     }
                 }
             } catch (err) {
@@ -145,7 +162,7 @@ function AplContent() {
     }, [queryAppId, router]);
 
     // Handle upload berkas fisik multipart
-    const handleFileUpload = async (documentType: string, file: File) => {
+    const handleFileUpload = async (documentType: string, category: string, file: File) => {
         if (!applicationId) return;
         setUploadingDocType(documentType);
         setErrorMessage("");
@@ -155,6 +172,7 @@ function AplContent() {
             const formData = new FormData();
             formData.append("file", file);
             formData.append("documentType", documentType);
+            formData.append("category", category);
 
             const res = await fetch(`/api/applications/${applicationId}/documents`, {
                 method: "POST",
@@ -204,36 +222,13 @@ function AplContent() {
         }
     };
 
-    // Simpan asesmen mandiri APL-02 (PUT /api/applications/:id/apl02)
-    const saveApl02 = async () => {
-        if (!applicationId) return;
-        const payload = {
-            units: Object.entries(selfAssessments).map(([unitId, val]) => ({
-                unitId,
-                selfAssessment: val.selfAssessment,
-                notes: val.notes,
-            })),
-        };
-
-        const res = await fetch(`/api/applications/${applicationId}/apl02`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.error || "Gagal menyimpan asesmen mandiri.");
-        }
-    };
-
     const handleSaveDraft = async () => {
         setSavingDraft(true);
         setErrorMessage("");
         setSuccessNotice("");
         try {
-            await saveApl02();
-            setSuccessNotice("Draf asesmen mandiri berhasil disimpan.");
+            // Berkas fisik sudah otomatis tersimpan saat diunggah
+            setSuccessNotice("Draf permohonan dan berkas dokumen berhasil disimpan.");
         } catch (err) {
             setErrorMessage(err instanceof Error ? err.message : "Gagal menyimpan draf.");
         } finally {
@@ -241,7 +236,7 @@ function AplContent() {
         }
     };
 
-    // Final submit permohonan
+    // Final submit permohonan ke Admin LSP
     const handleSubmitApplication = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!applicationId) return;
@@ -251,10 +246,7 @@ function AplContent() {
         setSuccessNotice("");
 
         try {
-            // 1. Simpan APL-02 terlebih dahulu
-            await saveApl02();
-
-            // 2. Submit permohonan secara resmi
+            // Submit permohonan secara resmi ke admin
             const res = await fetch(`/api/applications/${applicationId}/submit`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -262,6 +254,13 @@ function AplContent() {
 
             const data = await res.json();
             if (!res.ok) {
+                if (data.details?.missingDocuments) {
+                    const missingNames = data.details.missingDocuments.map((d: { code: string }) => d.code).join(", ");
+                    throw new Error(`Dokumen persyaratan wajib belum lengkap: ${missingNames}`);
+                }
+                if (data.details?.fields && Array.isArray(data.details.fields)) {
+                    throw new Error(`Data profil (APL-01) belum lengkap. Silakan kembali ke halaman Profil & Biodata dan simpan ulang data Anda.\n\nKolom bermasalah: ${(data.details.fields as string[]).join("; ")}`);
+                }
                 throw new Error(data.error || "Gagal mengirim permohonan sertifikasi.");
             }
 
@@ -278,7 +277,7 @@ function AplContent() {
         return (
             <div className="py-24 text-center space-y-3 font-sans">
                 <Loader2 className="w-8 h-8 text-[#0070BA] animate-spin mx-auto" />
-                <p className="text-sm text-slate-500">Memuat formulir APL-01 & APL-02...</p>
+                <p className="text-sm text-slate-500">Memuat formulir permohonan sertifikasi...</p>
             </div>
         );
     }
@@ -302,9 +301,9 @@ function AplContent() {
             <div className="bg-white dark:bg-[#0B192C] rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <div>
-                        <span className="apl-badge-blue">Tahap 03 • Formulir APL-01 & APL-02</span>
+                        <span className="apl-badge-blue">Tahap 04 • Berkas Permohonan Sertifikasi (FR.APL-01)</span>
                         <h2 className="text-xl sm:text-2xl font-bold text-[#1a2b4c] dark:text-white mt-1">
-                            Kelengkapan Berkas & Asesmen Mandiri
+                            Kelengkapan Berkas Persyaratan & Unit Uji
                         </h2>
                     </div>
                     <div className="px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-[#0070BA] dark:text-blue-400 font-mono text-xs font-bold border border-blue-100 dark:border-blue-800/50 self-start sm:self-auto">
@@ -330,11 +329,49 @@ function AplContent() {
                 </div>
             </div>
 
+            {/* Banner Status Pembayaran */}
+            {appData.payment && appData.payment.status !== "approved" && (
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-start gap-2.5">
+                        <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-bold text-sm">Pembayaran Pendaftaran Belum Disetujui</p>
+                            <p className="mt-0.5 text-slate-600 dark:text-slate-300">
+                                Status pembayaran saat ini: <strong className="uppercase">{appData.payment.status}</strong>. Anda dapat mengunggah berkas di bawah ini, namun pengiriman resmi ke Admin LSP memerlukan pembayaran yang telah disetujui.
+                            </p>
+                        </div>
+                    </div>
+                    <Link
+                        href={`/dashboard/pembayaran?applicationId=${applicationId}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 transition"
+                    >
+                        Cek Pembayaran →
+                    </Link>
+                </div>
+            )}
+
             {/* Alert Notifikasi */}
             {errorMessage && (
-                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{errorMessage}</span>
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs space-y-2">
+                    <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span className="whitespace-pre-line">{errorMessage}</span>
+                    </div>
+                    {errorMessage.includes("APL-01") || errorMessage.includes("profil") ? (
+                        <div className="flex gap-2 pt-1">
+                            <button
+                                type="button"
+                                onClick={handleSyncProfile}
+                                disabled={syncingProfile}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition cursor-pointer disabled:opacity-60"
+                            >
+                                {syncingProfile ? <><Loader2 className="w-3 h-3 animate-spin" /> Menyinkronkan...</> : "🔄 Sinkronkan Data Profil ke Server"}
+                            </button>
+                            <Link href="/dashboard/profile" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-300 text-red-700 hover:bg-red-100 text-xs font-semibold transition">
+                                ✏️ Edit Profil
+                            </Link>
+                        </div>
+                    ) : null}
                 </div>
             )}
             {successNotice && (
@@ -413,7 +450,7 @@ function AplContent() {
                                                 className="hidden"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
-                                                    if (file) void handleFileUpload(req.code, file);
+                                                    if (file) void handleFileUpload(req.code, req.category, file);
                                                 }}
                                             />
                                         </label>
@@ -425,91 +462,56 @@ function AplContent() {
                 </div>
             </div>
 
-            {/* BAGIAN 2: FR.APL-02 ASESMEN MANDIRI */}
+            {/* BAGIAN 2: DAFTAR UNIT KOMPETENSI SKEMA YANG AKAN DIUJI */}
             <div className="apl-section-box">
                 <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-                    <span className="apl-badge-amber">Bagian 2 • FR.APL-02</span>
+                    <div className="flex items-center gap-2">
+                        <span className="apl-badge-blue">Standar Kompetensi Kerja (SKKNI)</span>
+                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                            {units.length} Unit Kompetensi
+                        </span>
+                    </div>
                     <h3 className="text-xl font-bold text-[#1a2b4c] dark:text-white mt-1">
-                        Asesmen Mandiri <span className="text-[#0070BA] dark:text-blue-400">Unit Kompetensi</span>
+                        Daftar Unit Kompetensi yang <span className="text-[#0070BA] dark:text-blue-400">Akan Diuji</span>
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">
-                        Lakukan asesmen mandiri terhadap seluruh unit kompetensi SKKNI. Pilih <b>K (Kompeten)</b> jika Anda mampu dan memiliki bukti relevan, atau <b>BK (Belum Kompeten)</b>.
-                    </p>
+                    <div className="mt-2 p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-900 dark:text-blue-300 flex items-start gap-2.5">
+                        <ShieldCheck className="w-4 h-4 text-[#0070BA] shrink-0 mt-0.5" />
+                        <p>
+                            Penentuan dan penilaian kompetensi setiap unit SKKNI dilakukan langsung oleh <b>Asesor Penguji</b> dan disahkan oleh <b>Admin LSP</b> pada pelaksanaan asesmen. Peserta tidak perlu mengisi asesmen mandiri.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto pt-2">
                     <table className="apl-table">
                         <thead>
                             <tr className="apl-table-head">
-                                <th className="py-3 px-4">Kode & Judul Unit SKKNI</th>
-                                <th className="py-3 px-4 text-center w-40">Penilaian Mandiri</th>
-                                <th className="py-3 px-4 w-72">Bukti Portofolio / Catatan</th>
+                                <th className="py-3 px-4 w-12 text-center">No</th>
+                                <th className="py-3 px-4 w-48">Kode Unit SKKNI</th>
+                                <th className="py-3 px-4">Judul Unit Kompetensi</th>
+                                <th className="py-3 px-4 w-44 text-center">Penguji & Penilai</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-                            {units.map((unit) => {
-                                const state = selfAssessments[unit.id] || { selfAssessment: "competent", notes: "" };
-
-                                return (
-                                    <tr key={unit.id} className="apl-table-row">
-                                        <td className="py-4 px-4 align-top">
-                                            <p className="font-mono font-bold text-[#0070BA] dark:text-blue-400">{unit.code}</p>
-                                            <p className="font-medium text-slate-700 dark:text-slate-200 mt-0.5">{unit.title}</p>
-                                        </td>
-                                        <td className="py-4 px-4 align-top">
-                                            <div className="flex items-center justify-center gap-4 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
-                                                <label className="flex items-center gap-1.5 cursor-pointer font-bold text-xs text-emerald-600">
-                                                    <input
-                                                        type="radio"
-                                                        name={`assessment_${unit.id}`}
-                                                        value="competent"
-                                                        checked={state.selfAssessment === "competent"}
-                                                        onChange={() =>
-                                                            setSelfAssessments((prev) => ({
-                                                                ...prev,
-                                                                [unit.id]: { ...state, selfAssessment: "competent" },
-                                                            }))
-                                                        }
-                                                        className="accent-emerald-600"
-                                                    />
-                                                    K
-                                                </label>
-                                                <span className="text-slate-300">|</span>
-                                                <label className="flex items-center gap-1.5 cursor-pointer font-bold text-xs text-amber-600">
-                                                    <input
-                                                        type="radio"
-                                                        name={`assessment_${unit.id}`}
-                                                        value="not_competent"
-                                                        checked={state.selfAssessment === "not_competent"}
-                                                        onChange={() =>
-                                                            setSelfAssessments((prev) => ({
-                                                                ...prev,
-                                                                [unit.id]: { ...state, selfAssessment: "not_competent" },
-                                                            }))
-                                                        }
-                                                        className="accent-amber-600"
-                                                    />
-                                                    BK
-                                                </label>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 align-top">
-                                            <input
-                                                type="text"
-                                                placeholder="Contoh: Sertifikat / Hasil Proyek Lab"
-                                                value={state.notes}
-                                                onChange={(e) =>
-                                                    setSelfAssessments((prev) => ({
-                                                        ...prev,
-                                                        [unit.id]: { ...state, notes: e.target.value },
-                                                    }))
-                                                }
-                                                className="apl-input-sm"
-                                            />
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {units.map((unit, index) => (
+                                <tr key={unit.id} className="apl-table-row">
+                                    <td className="py-3.5 px-4 text-center font-bold text-slate-400">
+                                        {index + 1}
+                                    </td>
+                                    <td className="py-3.5 px-4 font-mono font-bold text-[#0070BA] dark:text-blue-400">
+                                        {unit.code}
+                                    </td>
+                                    <td className="py-3.5 px-4 font-medium text-slate-700 dark:text-slate-200">
+                                        {unit.title}
+                                    </td>
+                                    <td className="py-3.5 px-4 text-center">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-[11px]">
+                                            <Award className="w-3 h-3 text-[#0070BA]" />
+                                            Asesor LSP
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
@@ -523,7 +525,7 @@ function AplContent() {
                     disabled={savingDraft || submitting}
                     className="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
-                    {savingDraft ? "Menyimpan..." : "Simpan Draf Terlebih Dahulu"}
+                    {savingDraft ? "Menyimpan..." : "Simpan Draf Berkas"}
                 </button>
 
                 <button

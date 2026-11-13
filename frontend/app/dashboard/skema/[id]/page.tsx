@@ -144,11 +144,24 @@ export default function DetailSkemaPage() {
         setSubmitting(true);
         try {
             // Ambil draf APL-01 dari localStorage jika ada
-            let apl01Draft = {};
+            let apl01Draft: Record<string, unknown> = {};
             const localData = localStorage.getItem("apl01_draft");
             if (localData) {
                 try {
-                    apl01Draft = JSON.parse(localData);
+                    const parsed = JSON.parse(localData) as Record<string, unknown>;
+                    // Normalisasi field: pastikan menggunakan nama field yang sesuai dengan backend
+                    apl01Draft = {
+                        ...parsed,
+                        // Mapping field lama -> field baru yang dikenali backend
+                        educationLevel: parsed.educationLevel || parsed.education || "",
+                        institution: parsed.institution || parsed.schoolName || "",
+                        studyProgram: parsed.studyProgram || parsed.major || "",
+                        employment: parsed.employment || (
+                            parsed.jobStatus === "Bekerja"
+                                ? `${String(parsed.jobTitle || "")} di ${String(parsed.companyName || "")}`.trim()
+                                : String(parsed.jobStatus || "")
+                        ),
+                    };
                 } catch {}
             }
 
@@ -169,8 +182,8 @@ export default function DetailSkemaPage() {
             }
 
             const appId = data.application?.id;
-            // Navigasi ke tahap 3 (Form APL-01 & APL-02)
-            router.push(`/dashboard/apl?applicationId=${appId}`);
+            // Navigasi ke tahap pembayaran pendaftaran skema
+            router.push(`/dashboard/pembayaran?applicationId=${appId}`);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Terjadi kesalahan saat memproses permohonan.");
         } finally {
@@ -397,7 +410,7 @@ export default function DetailSkemaPage() {
                             disabled={submitting || schedules.length === 0}
                             className="w-full py-3.5 rounded-xl bg-[#0070BA] hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/20 cursor-pointer"
                         >
-                            {submitting ? "Memproses Permohonan..." : "Lanjut ke Pengisian APL-01 & APL-02 →"}
+                            {submitting ? "Memproses Permohonan..." : "Lanjut ke Pembayaran Pendaftaran →"}
                         </button>
                     </div>
                 </div>

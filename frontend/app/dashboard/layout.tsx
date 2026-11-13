@@ -20,8 +20,9 @@ type UserProfile = {
 const MENU_ITEMS = [
     { step: "01", label: "Profil & Biodata", desc: "Identitas & berkas KTP", href: "/dashboard/profile" },
     { step: "02", label: "Pilih Skema & Jadwal", desc: "Skema uji & lokasi TUK", href: "/dashboard/skema" },
-    { step: "03", label: "Form APL-01 & APL-02", desc: "Syarat & asesmen mandiri", href: "/dashboard/apl" },
-    { step: "04", label: "Status & Kartu Ujian", desc: "Verifikasi & cetak kartu", href: "/dashboard/status" },
+    { step: "03", label: "Pembayaran Skema", desc: "Transfer manual & CS", href: "/dashboard/pembayaran" },
+    { step: "04", label: "Berkas Permohonan APL", desc: "Dokumen & unit kompetensi", href: "/dashboard/apl" },
+    { step: "05", label: "Status & Kartu Ujian", desc: "Verifikasi & cetak kartu", href: "/dashboard/status" },
 ];
 
 const inter = Inter({ subsets: ["latin"] });
@@ -72,10 +73,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className={inter.className}>
-            <div className="min-h-screen flex bg-[#F8FAFC] text-[#0A1D37] dark:bg-[#071120] dark:text-slate-100 transition-colors duration-300 font-sans">
+            <div className="h-dvh flex overflow-hidden bg-[#F8FAFC] text-[#0A1D37] dark:bg-[#071120] dark:text-slate-100 transition-colors duration-300 font-sans">
                 {/* SIDEBAR KIRI */}
                 <aside
-                    className={`fixed inset-y-0 left-0 z-40 w-80 bg-white lg:sticky lg:top-0 lg:h-screen dark:bg-[#0B192C] border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between transition-transform duration-300 lg:static lg:translate-x-0 print:hidden ${
+                    className={`fixed inset-y-0 left-0 z-40 w-80 shrink-0 overflow-y-auto bg-white dark:bg-[#0B192C] border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between transition-transform duration-300 lg:static lg:h-dvh lg:translate-x-0 print:hidden ${
                         sidebarOpen ? "translate-x-0" : "-translate-x-full"
                     }`}
                 >
@@ -172,7 +173,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </aside>
 
                 {/* KONTEN UTAMA KANAN */}
-                <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto">
                     <header className="h-24 bg-white/90 dark:bg-[#0B192C]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-6 sm:px-10 flex items-center justify-between sticky top-0 z-30 print:hidden">
                         <div className="flex items-center gap-4">
                             <button
