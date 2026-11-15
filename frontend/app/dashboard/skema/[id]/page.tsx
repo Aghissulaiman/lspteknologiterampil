@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Calendar, CheckCircle2, Clock, FileCode2, FileText, Info, MapPin, ShieldCheck, Users } from "lucide-react";
+import { readApl01DraftForUser } from "@/lib/apl01Draft";
 
 type CompetencyUnit = {
     id: string;
@@ -143,9 +144,15 @@ export default function DetailSkemaPage() {
 
         setSubmitting(true);
         try {
-            // Ambil draf APL-01 dari localStorage jika ada
+            const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+            if (!meRes.ok) throw new Error("Sesi login tidak ditemukan. Silakan masuk kembali.");
+            const meData = await meRes.json();
+            const currentUserId = typeof meData?.user?.id === "string" ? meData.user.id : null;
+            if (!currentUserId) throw new Error("Akun login tidak ditemukan. Silakan masuk kembali.");
+
+            // Ambil draf APL-01 khusus akun yang sedang login.
             let apl01Draft: Record<string, unknown> = {};
-            const localData = localStorage.getItem("apl01_draft");
+            const localData = readApl01DraftForUser(currentUserId);
             if (localData) {
                 try {
                     const parsed = JSON.parse(localData) as Record<string, unknown>;

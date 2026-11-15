@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, FileText, Loader2, Trash2, Upload, ArrowRight, ShieldCheck, Award } from "lucide-react";
+import { readApl01DraftForUser } from "@/lib/apl01Draft";
 
 type StoredDoc = {
     id: string;
@@ -30,6 +31,7 @@ type DocumentRequirement = {
 
 type ApplicationData = {
     id: string;
+    participant_id: string;
     scheme_id: string;
     scheme_code: string;
     scheme_name: string;
@@ -66,7 +68,9 @@ function AplContent() {
         setErrorMessage("");
         setSuccessNotice("");
         try {
-            const localData = localStorage.getItem("apl01_draft");
+            const participantId = appData?.participant_id;
+            if (!participantId) throw new Error("Akun pemilik permohonan tidak ditemukan.");
+            const localData = readApl01DraftForUser(participantId);
             if (!localData) throw new Error("Data profil belum ditemukan di perangkat ini. Silakan kembali ke halaman Profil & Biodata lalu simpan ulang.");
             const parsed = JSON.parse(localData) as Record<string, unknown>;
             // Normalisasi field

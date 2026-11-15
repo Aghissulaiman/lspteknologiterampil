@@ -260,15 +260,6 @@ function PembayaranContent() {
                         <span>Muat Ulang</span>
                     </button>
 
-                    <a
-                        href={waUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-sm"
-                    >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>CS WhatsApp</span>
-                    </a>
                 </div>
             </div>
 
@@ -652,11 +643,6 @@ function PembayaranContent() {
                         <p className="text-xs text-emerald-50 leading-relaxed">
                             Mengalami kendala dalam proses transfer atau ingin konfirmasi bukti setoran secara instan? Hubungi layanan bantuan kami.
                         </p>
-
-                        <div className="p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                            <p className="text-[10px] text-emerald-200 uppercase font-semibold">Nomor WhatsApp Resmi:</p>
-                            <p className="font-mono text-base font-bold text-white mt-0.5">{csPhone}</p>
-                        </div>
 
                         <a
                             href={waUrl}

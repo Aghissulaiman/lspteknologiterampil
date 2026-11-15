@@ -73,13 +73,13 @@ export default function AsesorLayout({
 
                 {/* Brand Header */}
                 <div className="flex flex-col px-6 py-5 border-b border-border">
-                    <Link href="/asesor" className="flex items-center gap-3">
+                    <Link href="/" className="flex items-center gap-3">
                         {/* <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
                             <ShieldCheck className="h-6 w-6" />
                         </div> */}
                         <div>
-                            <span className="text-base font-black leading-tight tracking-tight text-foreground block">
-                               LSP Teknologi terampil Mayantara
+                            <span className="text-xl font-bold leading-tight tracking-tight text-foreground block">
+                                LSP <span className="text-primary">Teknologi Terampil</span>
                             </span>
                             <span className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest mt-0.5">
                                 Asesor

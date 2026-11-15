@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { readApl01DraftForUser, saveApl01DraftForUser } from "@/lib/apl01Draft";
 
 type Region = { code: string; name: string };
 
@@ -59,6 +60,7 @@ export default function ProfilPage() {
             try {
                 // Ambil data user
                 const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+                let currentUserId: string | null = null;
                 let userNik = "";
                 let userFullName = "";
                 let userPhone = "";
@@ -67,6 +69,7 @@ export default function ProfilPage() {
                 if (meRes.ok) {
                     const meData = await meRes.json();
                     if (meData?.user) {
+                        currentUserId = typeof meData.user.id === "string" ? meData.user.id : null;
                         userNik = meData.user.nik || "";
                         userFullName = meData.user.fullName || "";
                         userPhone = meData.user.phone || "";
@@ -92,8 +95,8 @@ export default function ProfilPage() {
                 }
 
                 // Cek juga localStorage jika belum ada dari database
-                if (Object.keys(existingApl01).length === 0) {
-                    const localDraft = localStorage.getItem("apl01_draft");
+                if (Object.keys(existingApl01).length === 0 && currentUserId) {
+                    const localDraft = readApl01DraftForUser(currentUserId);
                     if (localDraft) {
                         try {
                             existingApl01 = JSON.parse(localDraft);
@@ -221,24 +224,35 @@ export default function ProfilPage() {
             employment: profile.jobStatus === "Bekerja" ? `${profile.jobTitle} di ${profile.companyName}` : profile.jobStatus,
         };
 
-        // Simpan ke localStorage agar bisa langsung diakses tahap berikutnya
-        localStorage.setItem("apl01_draft", JSON.stringify(apl01Payload));
+        try {
+            const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+            if (!meRes.ok) throw new Error("Sesi login tidak ditemukan. Silakan masuk kembali.");
+            const meData = await meRes.json();
+            const currentUserId = typeof meData?.user?.id === "string" ? meData.user.id : null;
+            if (!currentUserId) throw new Error("Akun login tidak ditemukan. Silakan masuk kembali.");
 
-        // Jika sudah ada aplikasi aktif di server, update via API
-        if (activeApplicationId) {
-            try {
-                await fetch(`/api/applications/${activeApplicationId}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ apl01: apl01Payload }),
-                });
-            } catch (err) {
-                console.error("Gagal sinkronisasi APL-01 ke server:", err);
+            // Simpan draft terpisah untuk akun login agar bisa dipakai di tahap berikutnya.
+            saveApl01DraftForUser(currentUserId, apl01Payload);
+
+            // Jika sudah ada aplikasi aktif di server, update via API.
+            if (activeApplicationId) {
+                try {
+                    await fetch(`/api/applications/${activeApplicationId}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ apl01: apl01Payload }),
+                    });
+                } catch (err) {
+                    console.error("Gagal sinkronisasi APL-01 ke server:", err);
+                }
             }
-        }
 
-        setSaving(false);
-        router.push("/dashboard/skema");
+            router.push("/dashboard/skema");
+        } catch (err) {
+            alert(err instanceof Error ? err.message : "Data profil belum dapat disimpan.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
