@@ -31,10 +31,11 @@ async function publicSchemeDetails(schemeId: string) {
 router.get("/schemes", async (_request, response) => {
   try {
     const result = await getPool().query(
-      `SELECT id, code, name, category, level, description, requirements
-       FROM certification_schemes WHERE is_active = true AND is_public = true ORDER BY name, code`,
+      `SELECT s.id, s.code, s.name, s.category, s.level, s.description, s.requirements,
+              (SELECT count(*)::int FROM competency_units u WHERE u.scheme_id = s.id AND u.is_active = true) AS unit_count
+       FROM certification_schemes s WHERE s.is_active = true AND s.is_public = true ORDER BY s.name, s.code`,
     );
-    response.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300").json({ schemes: result.rows });
+    response.set("Cache-Control", "no-store").json({ schemes: result.rows });
   } catch (error) {
     console.error("Skema publik gagal dimuat:", error);
     response.status(500).json({ error: "Informasi skema belum dapat dimuat." });
@@ -53,7 +54,7 @@ router.get("/schemes/:schemeId", async (request, response) => {
     if (!schemeId) return response.status(404).json({ error: "Skema tidak ditemukan." });
     const scheme = await publicSchemeDetails(schemeId);
     if (!scheme) return response.status(404).json({ error: "Skema tidak ditemukan." });
-    response.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300").json({ scheme });
+    response.set("Cache-Control", "no-store").json({ scheme });
   } catch (error) {
     console.error("Detail skema publik gagal dimuat:", error);
     response.status(500).json({ error: "Informasi skema belum dapat dimuat." });

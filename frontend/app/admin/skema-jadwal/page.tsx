@@ -10,6 +10,7 @@ type SchemeSummary = {
   name: string;
   category: string;
   level: string;
+  requirements?: Record<string, unknown> | null;
   is_public: boolean;
   is_active: boolean;
   unit_count: number;
@@ -32,7 +33,8 @@ type DocumentDraft = {
   label: string;
   category: "administrative" | "portfolio";
   isRequired: boolean;
-  allowedMimeTypes: string;
+  allowedMimeTypes: string[];
+  autoCode: boolean;
 };
 
 type SchemeDraft = {
@@ -42,7 +44,12 @@ type SchemeDraft = {
   category: string;
   level: string;
   description: string;
-  requirementsText: string;
+  schemeType: string;
+  method: string;
+  price: string;
+  schemeNumber: string;
+  validity: string;
+  advancedRequirementsText: string;
   isPublic: boolean;
   isActive: boolean;
   applicationCount: number;
@@ -54,6 +61,33 @@ function itemKey() {
   return crypto.randomUUID();
 }
 
+function documentCodeFromLabel(label: string) {
+  return label
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+}
+
+function requirementString(value: unknown) {
+  return typeof value === "string" || typeof value === "number" ? String(value) : "";
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function mimeTypeLabel(mimeType: string) {
+  const labels: Record<string, string> = {
+    "application/pdf": "PDF",
+    "image/jpeg": "JPG atau JPEG",
+    "image/png": "PNG",
+  };
+  return labels[mimeType] ?? mimeType;
+}
+
 function emptyDraft(): SchemeDraft {
   return {
     code: "",
@@ -61,7 +95,12 @@ function emptyDraft(): SchemeDraft {
     category: "",
     level: "",
     description: "",
-    requirementsText: "{}",
+    schemeType: "",
+    method: "",
+    price: "",
+    schemeNumber: "",
+    validity: "",
+    advancedRequirementsText: "{}",
     isPublic: false,
     isActive: true,
     applicationCount: 0,
@@ -77,11 +116,12 @@ function responseError(payload: unknown, fallback: string) {
   return fallback;
 }
 
-const inputClass = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#0066CC] focus:ring-2 focus:ring-[#0066CC]/20 dark:border-slate-700 dark:bg-[#071120] dark:text-white";
+const inputClass = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 transition focus-visible:border-[#0066CC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC] dark:border-slate-700 dark:bg-[#071120] dark:text-white dark:focus-visible:ring-blue-400";
 const labelClass = "mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300";
 
 export default function SkemaJadwalPage() {
   const [schemes, setSchemes] = useState<SchemeSummary[]>([]);
+  const [allowedUploadTypes, setAllowedUploadTypes] = useState(["application/pdf", "image/jpeg", "image/png"]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
@@ -99,6 +139,9 @@ export default function SkemaJadwalPage() {
       const payload = await response.json();
       if (!response.ok) throw new Error(responseError(payload, "Daftar skema belum dapat dimuat."));
       setSchemes(payload.schemes ?? []);
+      if (Array.isArray(payload.allowedMimeTypes) && payload.allowedMimeTypes.length > 0) {
+        setAllowedUploadTypes(payload.allowedMimeTypes);
+      }
     } catch (error) {
       setListError(error instanceof Error ? error.message : "Daftar skema belum dapat dimuat.");
     } finally {
@@ -115,6 +158,11 @@ export default function SkemaJadwalPage() {
     if (!query) return schemes;
     return schemes.filter((scheme) => `${scheme.code} ${scheme.name} ${scheme.category}`.toLowerCase().includes(query));
   }, [schemes, search]);
+
+  const categorySuggestions = [...new Set(schemes.map((scheme) => scheme.category).filter(Boolean))];
+  const levelSuggestions = [...new Set(schemes.map((scheme) => scheme.level).filter(Boolean))];
+  const typeSuggestions = [...new Set(schemes.map((scheme) => requirementString(scheme.requirements?.type)).filter(Boolean))];
+  const methodSuggestions = [...new Set(schemes.map((scheme) => requirementString(scheme.requirements?.method)).filter(Boolean))];
 
   const startCreate = () => {
     setNotice("");
@@ -133,6 +181,17 @@ export default function SkemaJadwalPage() {
       const payload = await response.json();
       if (!response.ok) throw new Error(responseError(payload, "Detail skema belum dapat dimuat."));
       const scheme = payload.scheme;
+      const storedRequirements = isObject(scheme.requirements) ? { ...scheme.requirements } : {};
+      const schemeType = requirementString(storedRequirements.type);
+      const method = requirementString(storedRequirements.method);
+      const price = requirementString(storedRequirements.price);
+      const schemeNumber = requirementString(storedRequirements.nomorSkema);
+      const validity = requirementString(storedRequirements.masaBerlaku);
+      delete storedRequirements.type;
+      delete storedRequirements.method;
+      delete storedRequirements.price;
+      delete storedRequirements.nomorSkema;
+      delete storedRequirements.masaBerlaku;
       setDraft({
         id: scheme.id,
         code: scheme.code,
@@ -140,7 +199,12 @@ export default function SkemaJadwalPage() {
         category: scheme.category ?? "",
         level: scheme.level ?? "",
         description: scheme.description ?? "",
-        requirementsText: JSON.stringify(scheme.requirements ?? {}, null, 2),
+        schemeType,
+        method,
+        price,
+        schemeNumber,
+        validity,
+        advancedRequirementsText: JSON.stringify(storedRequirements, null, 2),
         isPublic: scheme.is_public,
         isActive: scheme.is_active,
         applicationCount: scheme.applicationCount ?? 0,
@@ -164,7 +228,8 @@ export default function SkemaJadwalPage() {
           label: document.label,
           category: document.category,
           isRequired: document.is_required,
-          allowedMimeTypes: document.allowed_mime_types.join(", "),
+          allowedMimeTypes: document.allowed_mime_types,
+          autoCode: false,
         })),
       });
     } catch (error) {
@@ -208,15 +273,44 @@ export default function SkemaJadwalPage() {
     if (!draft) return;
     setSaveError("");
 
-    let requirements: unknown;
+    let requirements: Record<string, unknown>;
     try {
-      requirements = JSON.parse(draft.requirementsText);
+      const advancedRequirements = JSON.parse(draft.advancedRequirementsText);
+      if (!isObject(advancedRequirements)) throw new Error("object");
+      requirements = { ...advancedRequirements };
     } catch {
-      setSaveError("Persyaratan skema harus berupa JSON yang valid.");
+      setSaveError("Pengaturan tambahan harus berisi objek JSON yang valid.");
       return;
     }
-    if (!requirements || typeof requirements !== "object" || Array.isArray(requirements)) {
-      setSaveError("Persyaratan skema harus berupa objek JSON.");
+
+    const editableRequirements: Array<[string, string]> = [
+      ["type", draft.schemeType],
+      ["method", draft.method],
+      ["price", draft.price],
+      ["nomorSkema", draft.schemeNumber],
+      ["masaBerlaku", draft.validity],
+    ];
+    for (const [key, value] of editableRequirements) {
+      if (value.trim()) requirements[key] = value.trim();
+      else delete requirements[key];
+    }
+
+    const unitCodes = draft.units.map((unit) => unit.code.trim().toLowerCase());
+    if (new Set(unitCodes).size !== unitCodes.length) {
+      setSaveError("Setiap unit harus memakai kode yang berbeda.");
+      return;
+    }
+    const documentCodes = draft.documentRequirements.map((document) => document.code.trim().toLowerCase());
+    if (documentCodes.some((code) => !code)) {
+      setSaveError("Isi nama setiap dokumen agar kode dokumennya dapat dibuat.");
+      return;
+    }
+    if (new Set(documentCodes).size !== documentCodes.length) {
+      setSaveError("Nama dokumen harus berbeda agar kode dokumennya tidak sama.");
+      return;
+    }
+    if (draft.documentRequirements.some((document) => document.allowedMimeTypes.length === 0)) {
+      setSaveError("Pilih minimal satu format berkas untuk setiap persyaratan dokumen.");
       return;
     }
 
@@ -241,7 +335,7 @@ export default function SkemaJadwalPage() {
         label: document.label,
         category: document.category,
         isRequired: document.isRequired,
-        allowedMimeTypes: document.allowedMimeTypes.split(",").map((mime) => mime.trim()).filter(Boolean),
+        allowedMimeTypes: document.allowedMimeTypes,
       })),
     };
 
@@ -273,7 +367,7 @@ export default function SkemaJadwalPage() {
             Kelola identitas skema, persyaratan, unit kompetensi, dan dokumen yang diminta kepada asesi.
           </p>
         </div>
-        <Button onClick={startCreate} className="gap-2 self-start sm:self-auto">
+        <Button onClick={startCreate} className="min-h-11 gap-2 self-start sm:self-auto">
           <Plus className="h-4 w-4" aria-hidden="true" /> Tambah Skema
         </Button>
       </header>
@@ -303,7 +397,7 @@ export default function SkemaJadwalPage() {
                   <h2 id="scheme-editor-heading" className="text-lg font-bold text-[#0A1D37] dark:text-white">{draft.id ? `Edit ${draft.code}` : "Skema Baru"}</h2>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Perubahan disimpan ke data skema yang digunakan sistem.</p>
                 </div>
-                <Button type="button" variant="ghost" size="icon" onClick={() => { setDraft(null); setSaveError(""); }} aria-label="Tutup editor">
+                <Button type="button" variant="ghost" size="icon" onClick={() => { setDraft(null); setSaveError(""); }} aria-label="Tutup editor" className="h-11 w-11">
                   <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
@@ -316,59 +410,96 @@ export default function SkemaJadwalPage() {
 
               <form onSubmit={saveScheme} className="space-y-7">
                 <section className="space-y-4" aria-labelledby="scheme-info-heading">
-                  <h3 id="scheme-info-heading" className="border-b border-slate-200 pb-2 text-sm font-bold text-[#0A1D37] dark:border-slate-800 dark:text-white">Identitas skema</h3>
+                  <div className="border-b border-slate-200 pb-3 dark:border-slate-800">
+                    <h3 id="scheme-info-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">1. Informasi skema</h3>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Isi nama dan bidang supaya peserta mudah menemukan skema yang tepat.</p>
+                  </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <label>
-                      <span className={labelClass}>Kode skema</span>
-                      <input className={inputClass} required maxLength={50} value={draft.code} onChange={(event) => updateDraft({ code: event.target.value })} placeholder="Contoh: SKM-11" />
+                      <span className={labelClass}>Kode skema <span aria-hidden="true" className="text-red-600">*</span></span>
+                      <input className={inputClass} required maxLength={50} value={draft.code} onChange={(event) => updateDraft({ code: event.target.value.toUpperCase() })} placeholder="Contoh: SKM-11" autoComplete="off" />
+                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">Gunakan huruf, angka, tanda hubung, atau garis bawah.</span>
                     </label>
                     <label>
-                      <span className={labelClass}>Nama skema</span>
-                      <input className={inputClass} required minLength={2} maxLength={200} value={draft.name} onChange={(event) => updateDraft({ name: event.target.value })} placeholder="Nama sertifikasi" />
+                      <span className={labelClass}>Nama skema <span aria-hidden="true" className="text-red-600">*</span></span>
+                      <input className={inputClass} required minLength={2} maxLength={200} value={draft.name} onChange={(event) => updateDraft({ name: event.target.value })} placeholder="Contoh: Teknisi Desktop" />
                     </label>
                     <label>
-                      <span className={labelClass}>Kategori</span>
-                      <input className={inputClass} maxLength={100} value={draft.category} onChange={(event) => updateDraft({ category: event.target.value })} placeholder="Contoh: Pemrograman" />
+                      <span className={labelClass}>Bidang sertifikasi</span>
+                      <input className={inputClass} list="scheme-categories" maxLength={100} value={draft.category} onChange={(event) => updateDraft({ category: event.target.value })} placeholder="Pilih atau tulis bidang" />
+                      <datalist id="scheme-categories">{categorySuggestions.map((value) => <option key={value} value={value} />)}</datalist>
                     </label>
                     <label>
-                      <span className={labelClass}>Level</span>
-                      <input className={inputClass} maxLength={100} value={draft.level} onChange={(event) => updateDraft({ level: event.target.value })} placeholder="Contoh: Level 3" />
+                      <span className={labelClass}>Level KKNI</span>
+                      <input className={inputClass} list="scheme-levels" maxLength={100} value={draft.level} onChange={(event) => updateDraft({ level: event.target.value })} placeholder="Contoh: Level 3" />
+                      <datalist id="scheme-levels">{levelSuggestions.map((value) => <option key={value} value={value} />)}</datalist>
                     </label>
                   </div>
-                  <label className="block">
-                    <span className={labelClass}>Deskripsi skema</span>
-                    <textarea className={inputClass} rows={4} maxLength={20000} value={draft.description} onChange={(event) => updateDraft({ description: event.target.value })} placeholder="Ruang lingkup dan tujuan skema" />
-                  </label>
-                  <div className="flex flex-wrap gap-x-6 gap-y-3">
-                    <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                      <input type="checkbox" checked={draft.isPublic} onChange={(event) => updateDraft({ isPublic: event.target.checked })} className="h-4 w-4 accent-[#0066CC]" />
-                      Tampilkan di katalog publik
-                    </label>
-                    <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                      <input type="checkbox" checked={draft.isActive} onChange={(event) => updateDraft({ isActive: event.target.checked })} className="h-4 w-4 accent-[#0066CC]" />
-                      Skema aktif
-                    </label>
-                  </div>
-                </section>
 
-                <section className="space-y-3" aria-labelledby="scheme-requirements-heading">
-                  <div>
-                    <h3 id="scheme-requirements-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">Konfigurasi persyaratan</h3>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Simpan sebagai objek JSON. Contoh: <code>{'{ "requiredApl01Fields": ["education"] }'}</code></p>
-                  </div>
-                  <label>
-                    <span className="sr-only">Konfigurasi persyaratan skema dalam format JSON</span>
-                    <textarea className={`${inputClass} font-mono text-xs`} rows={5} value={draft.requirementsText} onChange={(event) => updateDraft({ requirementsText: event.target.value })} spellCheck={false} />
+                  <label className="block">
+                    <span className={labelClass}>Tentang skema</span>
+                    <textarea className={inputClass} rows={4} maxLength={20000} value={draft.description} onChange={(event) => updateDraft({ description: event.target.value })} placeholder="Jelaskan kompetensi yang akan dinilai dan ruang lingkup sertifikasi." />
+                    <span className="mt-1 block text-right text-xs text-slate-500 dark:text-slate-400">{draft.description.length}/20.000 karakter</span>
                   </label>
+
+                  <fieldset className="space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+                    <legend className="px-1 text-sm font-semibold text-[#0A1D37] dark:text-white">Informasi pendaftaran</legend>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Bagian yang dikosongkan tidak akan ditampilkan ke peserta.</p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <label>
+                        <span className={labelClass}>Jenis skema</span>
+                        <input className={inputClass} list="scheme-types" maxLength={100} value={draft.schemeType} onChange={(event) => updateDraft({ schemeType: event.target.value })} placeholder="Contoh: Okupasi" />
+                        <datalist id="scheme-types">{typeSuggestions.map((value) => <option key={value} value={value} />)}</datalist>
+                      </label>
+                      <label>
+                        <span className={labelClass}>Metode pelaksanaan</span>
+                        <input className={inputClass} list="scheme-methods" maxLength={100} value={draft.method} onChange={(event) => updateDraft({ method: event.target.value })} placeholder="Contoh: Tatap muka" />
+                        <datalist id="scheme-methods">{methodSuggestions.map((value) => <option key={value} value={value} />)}</datalist>
+                      </label>
+                      <label>
+                        <span className={labelClass}>Biaya pendaftaran</span>
+                        <input className={inputClass} maxLength={100} value={draft.price} onChange={(event) => updateDraft({ price: event.target.value })} placeholder="Contoh: Rp 1.200.000" />
+                      </label>
+                      <label>
+                        <span className={labelClass}>Nomor skema</span>
+                        <input className={inputClass} maxLength={200} value={draft.schemeNumber} onChange={(event) => updateDraft({ schemeNumber: event.target.value })} placeholder="Nomor sesuai dokumen resmi" />
+                      </label>
+                      <label>
+                        <span className={labelClass}>Masa berlaku sertifikat</span>
+                        <input className={inputClass} maxLength={100} value={draft.validity} onChange={(event) => updateDraft({ validity: event.target.value })} placeholder="Contoh: 3 tahun" />
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4 text-sm dark:border-slate-800">
+                      <input type="checkbox" checked={draft.isPublic} onChange={(event) => updateDraft({ isPublic: event.target.checked })} className="mt-0.5 h-4 w-4 cursor-pointer accent-[#0066CC]" />
+                      <span><span className="block font-semibold text-slate-800 dark:text-slate-200">Tampilkan di katalog</span><span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">Peserta bisa melihat skema ini di halaman publik.</span></span>
+                    </label>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4 text-sm dark:border-slate-800">
+                      <input type="checkbox" checked={draft.isActive} onChange={(event) => updateDraft({ isActive: event.target.checked })} className="mt-0.5 h-4 w-4 cursor-pointer accent-[#0066CC]" />
+                      <span><span className="block font-semibold text-slate-800 dark:text-slate-200">Skema aktif</span><span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">Skema aktif dapat dipakai untuk pendaftaran.</span></span>
+                    </label>
+                  </div>
+
+                  <details className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+                    <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066CC] dark:text-slate-200">Pengaturan tambahan (opsional)</summary>
+                    <p className="mb-2 mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">Gunakan hanya jika skema memiliki aturan tambahan yang belum tercakup pada kolom di atas. Pengaturan lama tetap dipertahankan.</p>
+                    <label>
+                      <span className={labelClass}>Data tambahan</span>
+                      <textarea className={`${inputClass} font-mono text-xs`} rows={4} value={draft.advancedRequirementsText} onChange={(event) => updateDraft({ advancedRequirementsText: event.target.value })} spellCheck={false} aria-describedby="scheme-advanced-help" />
+                    </label>
+                    <span id="scheme-advanced-help" className="sr-only">Masukkan objek JSON untuk pengaturan tambahan skema.</span>
+                  </details>
                 </section>
 
                 <section className="space-y-4" aria-labelledby="scheme-units-heading">
                   <div className="flex flex-col gap-3 border-b border-slate-200 pb-2 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <h3 id="scheme-units-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">Unit kompetensi</h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Urutan unit mengikuti urutan yang ditampilkan di bawah.</p>
+                      <h3 id="scheme-units-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">2. Unit kompetensi</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Tambahkan kode dan judul unit sesuai dokumen standar. Urutkan unit dengan tombol pindah.</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => updateDraft({ units: [...draft.units, { key: itemKey(), code: "", title: "", description: "", sortOrder: draft.units.length }] })} className="gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => updateDraft({ units: [...draft.units, { key: itemKey(), code: "", title: "", description: "", sortOrder: draft.units.length }] })} className="h-11 gap-2">
                       <Plus className="h-4 w-4" aria-hidden="true" /> Tambah unit
                     </Button>
                   </div>
@@ -378,13 +509,13 @@ export default function SkemaJadwalPage() {
                         <div className="mb-3 flex items-center justify-between">
                           <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Unit {index + 1}</h4>
                           <div className="flex items-center gap-1">
-                            <Button type="button" variant="ghost" size="icon" disabled={index === 0} aria-label={`Pindahkan unit ${index + 1} ke atas`} onClick={() => moveUnit(index, -1)}>
+                            <Button type="button" variant="ghost" size="icon" disabled={index === 0} aria-label={`Pindahkan unit ${index + 1} ke atas`} onClick={() => moveUnit(index, -1)} className="h-11 w-11">
                               <ArrowUp className="h-4 w-4" aria-hidden="true" />
                             </Button>
-                            <Button type="button" variant="ghost" size="icon" disabled={index === draft.units.length - 1} aria-label={`Pindahkan unit ${index + 1} ke bawah`} onClick={() => moveUnit(index, 1)}>
+                            <Button type="button" variant="ghost" size="icon" disabled={index === draft.units.length - 1} aria-label={`Pindahkan unit ${index + 1} ke bawah`} onClick={() => moveUnit(index, 1)} className="h-11 w-11">
                               <ArrowDown className="h-4 w-4" aria-hidden="true" />
                             </Button>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => updateDraft({ units: draft.units.filter((item) => item.key !== unit.key) })} disabled={draft.units.length === 1} aria-label={`Hapus unit ${index + 1}`}>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => updateDraft({ units: draft.units.filter((item) => item.key !== unit.key) })} disabled={draft.units.length === 1} aria-label={`Hapus unit ${index + 1}`} className="h-11 w-11">
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </div>
@@ -411,10 +542,10 @@ export default function SkemaJadwalPage() {
                 <section className="space-y-4" aria-labelledby="scheme-documents-heading">
                   <div className="flex flex-col gap-3 border-b border-slate-200 pb-2 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      <h3 id="scheme-documents-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">Persyaratan dokumen</h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Atur dokumen administrasi dan portofolio beserta format berkas yang diterima.</p>
+                      <h3 id="scheme-documents-heading" className="text-sm font-bold text-[#0A1D37] dark:text-white">3. Dokumen pendaftaran</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Pilih nama, kelompok, dan format berkas yang boleh dikirim peserta.</p>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={() => updateDraft({ documentRequirements: [...draft.documentRequirements, { key: itemKey(), code: "", label: "", category: "administrative", isRequired: true, allowedMimeTypes: "application/pdf, image/jpeg, image/png" }] })} className="gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => updateDraft({ documentRequirements: [...draft.documentRequirements, { key: itemKey(), code: "", label: "", category: "administrative", isRequired: true, allowedMimeTypes: [...allowedUploadTypes], autoCode: true }] })} className="h-11 gap-2">
                       <Plus className="h-4 w-4" aria-hidden="true" /> Tambah dokumen
                     </Button>
                   </div>
@@ -426,33 +557,53 @@ export default function SkemaJadwalPage() {
                         <article key={document.key} className="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
                           <div className="mb-3 flex items-center justify-between">
                             <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Dokumen {index + 1}</h4>
-                            <Button type="button" variant="ghost" size="icon" onClick={() => updateDraft({ documentRequirements: draft.documentRequirements.filter((item) => item.key !== document.key) })} aria-label={`Hapus dokumen ${index + 1}`}>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => updateDraft({ documentRequirements: draft.documentRequirements.filter((item) => item.key !== document.key) })} aria-label={`Hapus dokumen ${index + 1}`} className="h-11 w-11">
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           </div>
                           <div className="grid gap-3 md:grid-cols-2">
                             <label>
-                              <span className={labelClass}>Kode dokumen</span>
-                              <input className={inputClass} required maxLength={80} value={document.code} onChange={(event) => updateDocument(document.key, { code: event.target.value })} placeholder="ktp" />
-                            </label>
-                            <label>
-                              <span className={labelClass}>Nama dokumen</span>
-                              <input className={inputClass} required minLength={2} maxLength={200} value={document.label} onChange={(event) => updateDocument(document.key, { label: event.target.value })} placeholder="Kartu identitas" />
+                              <span className={labelClass}>Nama dokumen <span aria-hidden="true" className="text-red-600">*</span></span>
+                              <input className={inputClass} required minLength={2} maxLength={200} value={document.label} onChange={(event) => {
+                                const label = event.target.value;
+                                updateDocument(document.key, { label, ...(document.autoCode ? { code: documentCodeFromLabel(label) } : {}) });
+                              }} placeholder="Contoh: Kartu identitas" />
+                              <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">{document.autoCode ? `Kode otomatis: ${document.code || "akan dibuat dari nama dokumen"}` : `Kode tersimpan: ${document.code}`}</span>
                             </label>
                             <label>
                               <span className={labelClass}>Kategori</span>
-                              <select className={inputClass} value={document.category} onChange={(event) => updateDocument(document.key, { category: event.target.value as DocumentDraft["category"] })}>
+                              <select className={`${inputClass} cursor-pointer`} value={document.category} onChange={(event) => updateDocument(document.key, { category: event.target.value as DocumentDraft["category"] })}>
                                 <option value="administrative">Administrasi</option>
                                 <option value="portfolio">Portofolio</option>
                               </select>
                             </label>
-                            <label>
-                              <span className={labelClass}>MIME type (pisahkan dengan koma)</span>
-                              <input className={inputClass} required value={document.allowedMimeTypes} onChange={(event) => updateDocument(document.key, { allowedMimeTypes: event.target.value })} placeholder="application/pdf, image/jpeg" />
-                            </label>
-                            <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 md:col-span-2">
-                              <input type="checkbox" checked={document.isRequired} onChange={(event) => updateDocument(document.key, { isRequired: event.target.checked })} className="h-4 w-4 accent-[#0066CC]" />
-                              Wajib diserahkan
+                            <fieldset className="space-y-2 md:col-span-2">
+                              <legend className={labelClass}>Format berkas yang diterima</legend>
+                              <div className="flex flex-wrap gap-2">
+                                {[...new Set([...allowedUploadTypes, ...document.allowedMimeTypes])].map((mimeType) => {
+                                  const checked = document.allowedMimeTypes.includes(mimeType);
+                                  return (
+                                    <label key={mimeType} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm dark:border-slate-800">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => updateDocument(document.key, {
+                                          allowedMimeTypes: checked
+                                            ? document.allowedMimeTypes.filter((item) => item !== mimeType)
+                                            : [...document.allowedMimeTypes, mimeType],
+                                        })}
+                                        className="h-4 w-4 cursor-pointer accent-[#0066CC]"
+                                      />
+                                      {mimeTypeLabel(mimeType)}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                              {document.allowedMimeTypes.length === 0 && <p className="text-xs text-red-700 dark:text-red-300">Pilih minimal satu format berkas.</p>}
+                            </fieldset>
+                            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm text-slate-700 dark:text-slate-300 md:col-span-2">
+                              <input type="checkbox" checked={document.isRequired} onChange={(event) => updateDocument(document.key, { isRequired: event.target.checked })} className="h-4 w-4 cursor-pointer accent-[#0066CC]" />
+                              Peserta wajib menyerahkan dokumen ini
                             </label>
                           </div>
                         </article>
@@ -463,9 +614,9 @@ export default function SkemaJadwalPage() {
 
                 {saveError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">{saveError}</p>}
                 <div className="flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
-                  <Button type="button" variant="outline" onClick={() => { setDraft(null); setSaveError(""); }} disabled={saving}>Batal</Button>
-                  <Button type="submit" disabled={saving} className="gap-2">
-                    <Save className="h-4 w-4" aria-hidden="true" /> {saving ? "Menyimpan…" : "Simpan seluruh detail"}
+                  <Button type="button" variant="outline" onClick={() => { setDraft(null); setSaveError(""); }} disabled={saving} className="min-h-11">Batal</Button>
+                  <Button type="submit" disabled={saving} className="min-h-11 gap-2">
+                    <Save className="h-4 w-4" aria-hidden="true" /> {saving ? "Menyimpan…" : draft.id ? "Simpan perubahan" : "Simpan skema"}
                   </Button>
                 </div>
               </form>

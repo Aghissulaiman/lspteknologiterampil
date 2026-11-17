@@ -90,7 +90,10 @@ router.get("/", async (_request, response) => {
        LEFT JOIN certification_applications a ON a.scheme_id = s.id
        GROUP BY s.id ORDER BY s.name, s.code`,
     );
-    response.set("Cache-Control", "private, no-store").json({ schemes: result.rows });
+    response.set("Cache-Control", "private, no-store").json({
+      schemes: result.rows,
+      allowedMimeTypes: [...allowedUploadMimeTypes],
+    });
   } catch (error) {
     console.error("Skema gagal dimuat:", error);
     response.status(500).json({ error: "Daftar skema belum dapat dimuat." });

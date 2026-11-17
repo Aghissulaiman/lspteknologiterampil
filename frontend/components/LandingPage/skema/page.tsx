@@ -1,306 +1,285 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-    BookOpen,
-    CheckCircle2,
-    ChevronDown,
-    Grid2X2,
-    List,
-    RotateCcw,
-    // Search,
-    SlidersHorizontal,
-    Star,
-    X,
-} from "lucide-react";
-import { skemaList, levels, methods, categories } from "@/lib/skemaData";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { BookOpen, RefreshCw, Search, X } from "lucide-react";
+
+type PublicScheme = {
+    id: string;
+    code: string;
+    name: string;
+    category: string | null;
+    level: string | null;
+    description: string | null;
+    requirements: Record<string, unknown> | null;
+    unit_count: number;
+};
+
+function asText(value: unknown): string {
+    if (typeof value === "string" || typeof value === "number") return String(value).trim();
+    if (Array.isArray(value)) return value.map(asText).filter(Boolean).join(", ");
+    return "";
+}
+
+function errorMessage(payload: unknown) {
+    if (payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string") {
+        return payload.error;
+    }
+    return "Daftar skema belum dapat dimuat.";
+}
 
 export default function SkemaDaftar() {
-    const router = useRouter();
+    const [schemes, setSchemes] = useState<PublicScheme[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
-    const [categoryQuery, setCategoryQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedLevel, setSelectedLevel] = useState("");
-    const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
-    const [filtersOpen, setFiltersOpen] = useState(true);
-    const [view, setView] = useState<"grid" | "list">("grid");
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState("");
 
-    const filteredCategories = categories.filter((category) =>
-        category.toLocaleLowerCase().includes(categoryQuery.trim().toLocaleLowerCase())
+    const loadSchemes = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            const response = await fetch("/api/public/schemes", { cache: "no-store" });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(errorMessage(payload));
+            setSchemes(Array.isArray(payload.schemes) ? payload.schemes : []);
+            setLoadError("");
+        } catch (error) {
+            setLoadError(error instanceof Error ? error.message : "Daftar skema belum dapat dimuat.");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        void loadSchemes();
+
+        const refreshWhenVisible = () => {
+            if (!document.hidden) void loadSchemes();
+        };
+        const intervalId = window.setInterval(refreshWhenVisible, 30_000);
+        document.addEventListener("visibilitychange", refreshWhenVisible);
+        window.addEventListener("focus", refreshWhenVisible);
+
+        return () => {
+            window.clearInterval(intervalId);
+            document.removeEventListener("visibilitychange", refreshWhenVisible);
+            window.removeEventListener("focus", refreshWhenVisible);
+        };
+    }, [loadSchemes]);
+
+    const categories = useMemo(
+        () => [...new Set(schemes.map((scheme) => scheme.category?.trim()).filter((value): value is string => Boolean(value)))].sort(),
+        [schemes],
+    );
+    const levels = useMemo(
+        () => [...new Set(schemes.map((scheme) => scheme.level?.trim()).filter((value): value is string => Boolean(value)))].sort(),
+        [schemes],
     );
 
-    const filteredSkema = useMemo(() => {
+    const filteredSchemes = useMemo(() => {
         const query = searchQuery.trim().toLocaleLowerCase();
-        return skemaList.filter((item) => {
-            const matchesSearch =
-                !query ||
-                [item.title, item.code, item.category, item.description].some((value) =>
-                    value.toLocaleLowerCase().includes(query)
-                );
-            const matchesCategory = !selectedCategory || item.category === selectedCategory;
-            const matchesLevel = !selectedLevel || item.level === Number(selectedLevel);
-            const matchesMethod =
-                selectedMethods.length === 0 ||
-                selectedMethods.some((method) => item.methods.includes(method));
-            return matchesSearch && matchesCategory && matchesLevel && matchesMethod;
+        return schemes.filter((scheme) => {
+            const requirementValues = Object.values(scheme.requirements ?? {}).map(asText).join(" ");
+            const matchesSearch = !query ||
+                `${scheme.code} ${scheme.name} ${scheme.category ?? ""} ${scheme.level ?? ""} ${scheme.description ?? ""} ${requirementValues}`
+                    .toLocaleLowerCase()
+                    .includes(query);
+            const matchesCategory = !selectedCategory || scheme.category === selectedCategory;
+            const matchesLevel = !selectedLevel || scheme.level === selectedLevel;
+            return matchesSearch && matchesCategory && matchesLevel;
         });
-    }, [searchQuery, selectedCategory, selectedLevel, selectedMethods]);
+    }, [schemes, searchQuery, selectedCategory, selectedLevel]);
 
-    const resetFilters = () => {
+    const clearFilters = () => {
         setSearchQuery("");
-        setCategoryQuery("");
         setSelectedCategory("");
         setSelectedLevel("");
-        setSelectedMethods([]);
     };
 
-    const toggleMethod = (method: string) => {
-        setSelectedMethods((current) =>
-            current.includes(method)
-                ? current.filter((item) => item !== method)
-                : [...current, method]
-        );
-    };
-
-    const hasActiveFilters = Boolean(
-        searchQuery || selectedCategory || selectedLevel || selectedMethods.length
-    );
+    const hasFilters = Boolean(searchQuery || selectedCategory || selectedLevel);
 
     return (
         <main className="bg-background text-foreground">
-            <section className="relative isolate overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.07] via-background to-secondary/[0.08] py-14 sm:py-20">
+            <section className="border-b border-border bg-primary/[0.06] py-10 dark:bg-primary/[0.12] sm:py-14">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="max-w-3xl">
-                        <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-                            Skema <span className="text-primary">Sertifikasi</span> Profesi
+                        <p className="text-sm font-semibold text-primary">Katalog sertifikasi</p>
+                        <h1 className="mt-2 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+                            Skema sertifikasi profesi
                         </h1>
-                        <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                            Temukan skema sertifikasi kompetensi bidang teknologi informasi yang sesuai dengan keahlian dan tujuan karier Anda.
+                        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+                            Lihat bidang, level, unit kompetensi, dan persyaratan setiap skema sebelum mendaftar.
                         </p>
-                        <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
-                            <span className="inline-flex items-center gap-2">
-                                <CheckCircle2 className="h-4 w-4 text-primary" /> Sertifikasi berlisensi BNSP
-                            </span>
-                            <span className="inline-flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-primary" /> {skemaList.length} skema pilihan
-                            </span>
-                        </div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-10 sm:py-14">
+            <section className="py-8 sm:py-11" aria-labelledby="scheme-list-heading">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.14em] text-primary">Katalog sertifikasi</p>
-                            <h2 className="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">Jelajahi skema yang tersedia</h2>
+                            <h2 id="scheme-list-heading" className="text-xl font-bold sm:text-2xl">Pilih skema</h2>
+                            <p className="mt-1 text-sm text-muted-foreground">Informasi di bawah mengikuti perubahan yang disimpan admin.</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                            Menampilkan <span className="font-semibold text-foreground">{filteredSkema.length}</span> dari {skemaList.length} skema
-                        </p>
-                    </div>
-
-                    <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
-                        {/* Sidebar Filter */}
-                        <aside className="self-start rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5 lg:sticky lg:top-24">
+                        <div className="flex items-center justify-between gap-3 sm:justify-end">
+                            <p className="text-sm text-muted-foreground" aria-live="polite">
+                                {loading ? "Memuat skema…" : `${filteredSchemes.length} dari ${schemes.length} skema`}
+                            </p>
                             <button
                                 type="button"
-                                onClick={() => setFiltersOpen((open) => !open)}
-                                className="flex w-full items-center justify-between gap-2 text-left text-base font-bold"
+                                onClick={() => void loadSchemes()}
+                                disabled={refreshing}
+                                className="inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold transition hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60"
+                                aria-label="Muat ulang daftar skema"
                             >
-                                <span className="inline-flex items-center gap-2">
-                                    <SlidersHorizontal className="h-4 w-4 text-primary" /> Filter Pencarian
-                                </span>
-                                <ChevronDown className={`h-4 w-4 transition-transform ${filtersOpen ? "rotate-180" : ""}`} />
+                                <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
+                                <span className="hidden sm:inline">Muat ulang</span>
                             </button>
-
-                            {filtersOpen && (
-                                <div className="mt-5 flex flex-col gap-6 border-t border-border pt-5">
-                                    <fieldset>
-                                        <legend className="mb-3 text-sm font-bold">Metode Pelaksanaan</legend>
-                                        <div className="flex flex-wrap gap-2">
-                                            {methods.map((method) => (
-                                                <label
-                                                    key={method}
-                                                    className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${selectedMethods.includes(method)
-                                                            ? "border-primary bg-primary/5 text-primary"
-                                                            : "border-border text-muted-foreground hover:border-primary/40"
-                                                        }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={selectedMethods.includes(method)}
-                                                        onChange={() => toggleMethod(method)}
-                                                        className="h-4 w-4 accent-primary"
-                                                    />
-                                                    {method}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </fieldset>
-
-                                    <label className="block">
-                                        <span className="mb-3 block text-sm font-bold">Level KKNI</span>
-                                        <select
-                                            value={selectedLevel}
-                                            onChange={(event) => setSelectedLevel(event.target.value)}
-                                            className="h-10 w-full appearance-none rounded-lg border border-border bg-background px-3 pr-9 text-sm outline-none focus:border-primary"
-                                        >
-                                            <option value="">Semua Level</option>
-                                            {levels.map((level) => (
-                                                <option key={level} value={level}>
-                                                    Level {level} KKNI
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-
-                                    <fieldset>
-                                        <legend className="mb-3 text-sm font-bold">Kategori</legend>
-                                        <input
-                                            type="search"
-                                            value={categoryQuery}
-                                            onChange={(event) => setCategoryQuery(event.target.value)}
-                                            placeholder="Cari kategori..."
-                                            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none mb-3"
-                                        />
-                                        <div className="grid max-h-36 grid-cols-1 gap-2 overflow-y-auto pr-1">
-                                            <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
-                                                <input
-                                                    type="radio"
-                                                    name="skema-category"
-                                                    checked={!selectedCategory}
-                                                    onChange={() => setSelectedCategory("")}
-                                                    className="h-4 w-4 accent-primary"
-                                                />
-                                                Semua Kategori
-                                            </label>
-                                            {filteredCategories.map((category) => (
-                                                <label key={category} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
-                                                    <input
-                                                        type="radio"
-                                                        name="skema-category"
-                                                        checked={selectedCategory === category}
-                                                        onChange={() => setSelectedCategory(category)}
-                                                        className="h-4 w-4 accent-primary"
-                                                    />
-                                                    <span>{category}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </fieldset>
-                                </div>
-                            )}
-
-                            <div className="mt-4 border-t border-border pt-4">
-                                <button
-                                    type="button"
-                                    onClick={resetFilters}
-                                    disabled={!hasActiveFilters && !categoryQuery}
-                                    className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-primary disabled:opacity-40"
-                                >
-                                    <RotateCcw className="h-4 w-4" /> Reset Semua Filter
-                                </button>
-                            </div>
-                        </aside>
-
-                        {/* Daftar Card Skema */}
-                        <div className="min-w-0">
-                            <input
-                                type="search"
-                                placeholder="Cari nama, kode, atau bidang skema..."
-                                value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
-                                className="h-12 w-full rounded-xl border border-border bg-card pl-4 pr-4 text-sm shadow-sm outline-none mb-5 focus:border-primary"
-                            />
-
-                            <div className="mb-4 flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground">{filteredSkema.length} skema ditemukan</p>
-                                <div className="inline-flex items-center gap-1 rounded-xl border border-border bg-card p-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setView("grid")}
-                                        className={`inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${view === "grid" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
-                                            }`}
-                                    >
-                                        <Grid2X2 className="h-4 w-4" /> Grid
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setView("list")}
-                                        className={`inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm font-semibold ${view === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
-                                            }`}
-                                    >
-                                        <List className="h-4 w-4" /> List
-                                    </button>
-                                </div>
-                            </div>
-
-                            {filteredSkema.length ? (
-                                <div className={view === "grid" ? "grid gap-6 sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
-                                    {filteredSkema.map((skema) => (
-                                        <article
-                                            key={skema.id}
-                                            className={`group flex justify-between rounded-3xl border border-border bg-card p-3.5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-md ${view === "list" ? "flex-col gap-5 sm:flex-row sm:items-center sm:p-5" : "flex-col"
-                                                }`}
-                                        >
-                                            <div className={view === "list" ? "flex flex-1 flex-col gap-5 sm:flex-row sm:items-center" : ""}>
-                                                <div className={`relative overflow-hidden rounded-2xl bg-muted ${view === "list" ? "h-44 w-full sm:h-36 sm:w-52 shrink-0" : "h-44 w-full"}`}>
-                                                    <img src={skema.image} alt={skema.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                                    <span className="absolute right-3 top-3 rounded-full bg-card/95 px-3 py-1 text-[11px] font-extrabold text-primary shadow-sm backdrop-blur-sm">
-                                                        BNSP
-                                                    </span>
-                                                </div>
-
-                                                <div className={view === "list" ? "flex-1" : "px-2 pb-4 pt-4"}>
-                                                    <h3 className="line-clamp-2 min-h-[3.25rem] text-base font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
-                                                        {skema.title}
-                                                    </h3>
-                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                        <span className="rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">Level {skema.level}</span>
-                                                        <span className="rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">{skema.jenis}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className={`border-border/60 ${view === "list" ? "flex flex-col justify-between border-t pt-4 sm:w-56 sm:shrink-0 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0" : "border-t px-2 pb-1.5 pt-3.5"}`}>
-                                                <div className="mb-4 flex items-end justify-between">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Biaya Sertifikasi</p>
-                                                        <p className="mt-0.5 text-lg font-extrabold text-foreground">{skema.price}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="inline-flex items-center gap-1 text-xs font-bold text-secondary">
-                                                            <Star className="h-3.5 w-3.5 fill-current" />
-                                                            <span>{skema.rating} ({skema.reviewsCount})</span>
-                                                        </div>
-                                                        <p className="mt-0.5 text-[11px] text-muted-foreground">{skema.asesiCount} Asesi</p>
-                                                    </div>
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => router.push(`/skema/${skema.id}`)}
-                                                    className="w-full rounded-xl bg-primary py-3 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-secondary hover:text-secondary-foreground"
-                                                >
-                                                    Detail Skema
-                                                </button>
-                                            </div>
-                                        </article>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
-                                    <h3 className="font-bold">Skema tidak ditemukan</h3>
-                                    <button type="button" onClick={resetFilters} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">
-                                        <X className="h-4 w-4" /> Hapus semua filter
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
+
+                    {loadError && (
+                        <div role="alert" className="mb-5 flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-foreground">{loadError}</p>
+                            <button
+                                type="button"
+                                onClick={() => void loadSchemes()}
+                                className="min-h-11 cursor-pointer self-start font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:self-auto"
+                            >
+                                Coba lagi
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="mb-6 grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(12rem,1fr)_minmax(10rem,0.8fr)]">
+                        <label className="block">
+                            <span className="mb-1.5 block text-sm font-semibold">Cari skema</span>
+                            <span className="relative block">
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                                <input
+                                    type="search"
+                                    value={searchQuery}
+                                    onChange={(event) => setSearchQuery(event.target.value)}
+                                    placeholder="Nama, kode, atau bidang"
+                                    className="h-11 w-full rounded-lg border border-input bg-background pl-10 pr-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                />
+                            </span>
+                        </label>
+                        <label className="block">
+                            <span className="mb-1.5 block text-sm font-semibold">Bidang</span>
+                            <select
+                                value={selectedCategory}
+                                onChange={(event) => setSelectedCategory(event.target.value)}
+                                className="h-11 w-full cursor-pointer rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                <option value="">Semua bidang</option>
+                                {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+                            </select>
+                        </label>
+                        <label className="block">
+                            <span className="mb-1.5 block text-sm font-semibold">Level</span>
+                            <select
+                                value={selectedLevel}
+                                onChange={(event) => setSelectedLevel(event.target.value)}
+                                className="h-11 w-full cursor-pointer rounded-lg border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                                <option value="">Semua level</option>
+                                {levels.map((level) => <option key={level} value={level}>{level}</option>)}
+                            </select>
+                        </label>
+                    </div>
+
+                    {loading && schemes.length === 0 ? (
+                        <p role="status" className="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted-foreground">
+                            Memuat daftar skema sertifikasi…
+                        </p>
+                    ) : filteredSchemes.length > 0 ? (
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            {filteredSchemes.map((scheme) => {
+                                const requirements = scheme.requirements ?? {};
+                                const schemeType = asText(requirements.type);
+                                const method = asText(requirements.method);
+                                const price = asText(requirements.price);
+                                const unitCount = Number(scheme.unit_count) || 0;
+
+                                return (
+                                    <Link
+                                        key={scheme.id}
+                                        href={`/skema/${encodeURIComponent(scheme.id)}`}
+                                        aria-label={`Lihat detail skema: ${scheme.name}`}
+                                        className="group block h-full min-w-0 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    >
+                                        <article className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-5 transition-colors group-hover:border-primary/50">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span className="font-mono text-xs font-semibold text-primary">{scheme.code}</span>
+                                            {scheme.level && <span className="rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-foreground">{scheme.level}</span>}
+                                        </div>
+                                        <h3 className="mt-4 line-clamp-2 min-h-14 text-lg font-bold leading-snug">{scheme.name}</h3>
+                                        <p className="mt-1 min-h-5 text-sm text-muted-foreground">
+                                            {scheme.category || "\u00a0"}
+                                        </p>
+                                        <p className="mt-4 min-h-[4.5rem] line-clamp-3 text-sm leading-6 text-muted-foreground">
+                                            {scheme.description || "\u00a0"}
+                                        </p>
+
+                                        <dl className="mt-5 grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-3 border-t border-border pt-4 text-sm">
+                                            <div className="min-w-0">
+                                                <dt className="text-xs text-muted-foreground">Jenis skema</dt>
+                                                <dd className="mt-1 line-clamp-2 min-h-10 break-words font-medium leading-5">{schemeType || "—"}</dd>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <dt className="text-xs text-muted-foreground">Metode</dt>
+                                                <dd className="mt-1 line-clamp-2 min-h-10 break-words font-medium leading-5">{method || "—"}</dd>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <dt className="text-xs text-muted-foreground">Unit kompetensi</dt>
+                                                <dd className="mt-1 inline-flex min-h-10 items-start gap-1.5 font-medium leading-5">
+                                                    <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" /> {unitCount} unit
+                                                </dd>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <dt className="text-xs text-muted-foreground">Biaya</dt>
+                                                <dd className={`mt-1 line-clamp-2 min-h-10 break-words font-semibold leading-5 ${price ? "text-amber-800 dark:text-secondary" : "text-muted-foreground"}`}>
+                                                    {price || "—"}
+                                                </dd>
+                                            </div>
+                                        </dl>
+
+                                        <div className="mt-auto pt-5">
+                                            <span className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors group-hover:bg-primary/90 group-focus-visible:bg-primary/90">
+                                                Lihat detail skema
+                                            </span>
+                                        </div>
+                                        </article>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ) : loadError && schemes.length === 0 ? null : schemes.length === 0 ? (
+                        <div className="rounded-xl border border-dashed border-border px-5 py-12 text-center">
+                            <h3 className="font-semibold">Belum ada skema publik</h3>
+                            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+                                Skema yang aktif dan ditampilkan di katalog akan muncul di sini.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="rounded-xl border border-dashed border-border px-5 py-12 text-center">
+                            <h3 className="font-semibold">Skema tidak ditemukan</h3>
+                            <p className="mt-2 text-sm text-muted-foreground">Ubah kata pencarian atau pilihan bidang dan level.</p>
+                            {hasFilters && (
+                                <button
+                                    type="button"
+                                    onClick={clearFilters}
+                                    className="mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-semibold text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                >
+                                    <X className="h-4 w-4" aria-hidden="true" /> Hapus filter
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </section>
         </main>
