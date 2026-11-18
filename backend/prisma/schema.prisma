@@ -1,0 +1,447 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Check constraints and expression indexes are kept in the SQL migrations because
+// Prisma Schema cannot describe them without changing their PostgreSQL behavior.
+
+model User {
+  id           String   @id @db.Uuid
+  fullName     String   @map("full_name") @db.VarChar(100)
+  email        String   @db.VarChar(254)
+  nik          String?  @db.VarChar(16)
+  phone        String   @db.VarChar(20)
+  passwordHash String   @map("password_hash") @db.Text
+  role         String   @default("participant") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  folders                   Folder[]
+  schemesCreated            CertificationScheme[]        @relation("SchemeCreator")
+  tukSubmissions            TukSubmission[]              @relation("TukApplicant")
+  tukSubmissionsReviewed    TukSubmission[]              @relation("TukReviewer")
+  schedulesCreated          AssessmentSchedule[]         @relation("ScheduleCreator")
+  certificationApplications CertificationApplication[]   @relation("ApplicationParticipant")
+  applicationsDecided       CertificationApplication[]   @relation("ApplicationDecisionMaker")
+  documentsUploaded         StoredDocument[]             @relation("DocumentUploader")
+  applicationHistory        ApplicationStatusHistory[]   @relation("ApplicationHistoryActor")
+  tukSubmissionHistory      TukSubmissionStatusHistory[] @relation("TukHistoryActor")
+  assessments               Assessment[]                 @relation("AssessmentAssessor")
+  assessmentsAssigned       Assessment[]                 @relation("AssessmentAssigner")
+  certificatesIssued        Certificate[]                @relation("CertificateIssuer")
+  auditLogs                 AuditLog[]                   @relation("AuditActor")
+  schemePayments            SchemePayment[]              @relation("SchemePaymentParticipant")
+  schemePaymentsReviewed    SchemePayment[]              @relation("SchemePaymentReviewer")
+
+  @@unique([nik], map: "users_nik_unique")
+  @@map("users")
+}
+
+model Folder {
+  id        String   @id @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  name      String   @db.VarChar(100)
+  parentId  String?  @map("parent_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  owner    User     @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  parent   Folder?  @relation("FolderParent", fields: [parentId, ownerId], references: [id, ownerId], onDelete: Restrict, onUpdate: NoAction)
+  children Folder[] @relation("FolderParent")
+
+  @@unique([id, ownerId], map: "folders_id_owner_unique")
+  @@index([ownerId, parentId], map: "folders_owner_parent_idx")
+  @@map("folders")
+}
+
+model CertificationScheme {
+  id           String   @id @db.Uuid
+  code         String   @unique(map: "certification_schemes_code_key") @db.VarChar(50)
+  name         String   @db.VarChar(200)
+  category     String   @default("") @db.VarChar(100)
+  level        String   @default("") @db.VarChar(100)
+  description  String   @default("") @db.Text
+  requirements Json     @default("{}") @db.JsonB
+  isPublic     Boolean  @default(false) @map("is_public")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdBy    String?  @map("created_by") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  creator              User?                       @relation("SchemeCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  competencyUnits      CompetencyUnit[]
+  documentRequirements SchemeDocumentRequirement[]
+  testSiteSchemes      TestSiteScheme[]
+  tukSubmissionSchemes TukSubmissionScheme[]
+  schedules            AssessmentSchedule[]
+  applications         CertificationApplication[]
+
+  @@map("certification_schemes")
+}
+
+model CompetencyUnit {
+  id          String   @id @db.Uuid
+  schemeId    String   @map("scheme_id") @db.Uuid
+  code        String   @db.VarChar(80)
+  title       String   @db.VarChar(250)
+  description String   @default("") @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  scheme               CertificationScheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  applicationResponses ApplicationApl02[]
+  assessmentResults    AssessmentUnitResult[]
+
+  @@unique([schemeId, code], map: "competency_units_scheme_code_unique")
+  @@unique([id, schemeId], map: "competency_units_id_scheme_unique")
+  @@map("competency_units")
+}
+
+model SchemeDocumentRequirement {
+  id               String   @id @db.Uuid
+  schemeId         String   @map("scheme_id") @db.Uuid
+  code             String   @db.VarChar(80)
+  label            String   @db.VarChar(200)
+  category         String   @db.Text
+  isRequired       Boolean  @default(true) @map("is_required")
+  allowedMimeTypes String[] @default(["application/pdf", "image/jpeg", "image/png"]) @map("allowed_mime_types") @db.Text
+
+  scheme CertificationScheme @relation(fields: [schemeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([schemeId, code], map: "scheme_document_requirement_code_unique")
+  @@map("scheme_document_requirements")
+}
+
+model TestSite {
+  id            String   @id @db.Uuid
+  name          String   @db.VarChar(200)
+  address       String   @db.Text
+  phone         String   @default("") @db.VarChar(30)
+  email         String   @default("") @db.VarChar(254)
+  siteType      String   @default("") @map("site_type") @db.VarChar(100)
+  contactPerson String   @default("") @map("contact_person") @db.VarChar(200)
+  checklist     Json     @default("{}") @db.JsonB
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  schemes             TestSiteScheme[]
+  tukSubmissions      TukSubmission[]
+  assessmentSchedules AssessmentSchedule[]
+
+  @@map("test_sites")
+}
+
+model TestSiteScheme {
+  testSiteId String @map("test_site_id") @db.Uuid
+  schemeId   String @map("scheme_id") @db.Uuid
+
+  testSite TestSite            @relation(fields: [testSiteId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  scheme   CertificationScheme @relation(fields: [schemeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([testSiteId, schemeId], map: "test_site_schemes_pkey")
+  @@map("test_site_schemes")
+}
+
+model TukSubmission {
+  id                 String    @id @db.Uuid
+  applicantId        String    @map("applicant_id") @db.Uuid
+  status             String    @default("draft") @db.Text
+  profile            Json      @default("{}") @db.JsonB
+  facilityChecklist  Json      @default("{}") @map("facility_checklist") @db.JsonB
+  reviewNote         String?   @map("review_note") @db.Text
+  reviewedBy         String?   @map("reviewed_by") @db.Uuid
+  reviewedAt         DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  approvedTestSiteId String?   @map("approved_test_site_id") @db.Uuid
+  submittedAt        DateTime? @map("submitted_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  applicant        User                         @relation("TukApplicant", fields: [applicantId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  reviewer         User?                        @relation("TukReviewer", fields: [reviewedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approvedTestSite TestSite?                    @relation(fields: [approvedTestSiteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  schemes          TukSubmissionScheme[]
+  storedDocuments  StoredDocument[]
+  statusHistory    TukSubmissionStatusHistory[]
+
+  @@index([applicantId, createdAt(sort: Desc)], map: "tuk_submissions_applicant_idx")
+  @@index([status, createdAt], map: "tuk_submissions_status_idx")
+  @@map("tuk_submissions")
+}
+
+model TukSubmissionScheme {
+  tukSubmissionId String @map("tuk_submission_id") @db.Uuid
+  schemeId        String @map("scheme_id") @db.Uuid
+
+  tukSubmission TukSubmission       @relation(fields: [tukSubmissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  scheme        CertificationScheme @relation(fields: [schemeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([tukSubmissionId, schemeId], map: "tuk_submission_schemes_pkey")
+  @@map("tuk_submission_schemes")
+}
+
+model AssessmentSchedule {
+  id         String   @id @db.Uuid
+  schemeId   String   @map("scheme_id") @db.Uuid
+  testSiteId String   @map("test_site_id") @db.Uuid
+  startsAt   DateTime @map("starts_at") @db.Timestamptz(6)
+  endsAt     DateTime @map("ends_at") @db.Timestamptz(6)
+  capacity   Int      @db.Integer
+  isActive   Boolean  @default(true) @map("is_active")
+  createdBy  String?  @map("created_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  scheme       CertificationScheme        @relation(fields: [schemeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  testSite     TestSite                   @relation(fields: [testSiteId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  creator      User?                      @relation("ScheduleCreator", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  applications CertificationApplication[]
+
+  @@index([schemeId, isActive, startsAt], map: "assessment_schedules_available_idx")
+  @@map("assessment_schedules")
+}
+
+model CertificationApplication {
+  id                 String    @id @db.Uuid
+  participantId      String    @map("participant_id") @db.Uuid
+  schemeId           String    @map("scheme_id") @db.Uuid
+  scheduleId         String    @map("schedule_id") @db.Uuid
+  status             String    @default("draft") @db.Text
+  apl01              Json      @default("{}") @db.JsonB
+  submissionSnapshot Json?     @map("submission_snapshot") @db.JsonB
+  finalDecision      String?   @map("final_decision") @db.Text
+  decisionNote       String?   @map("decision_note") @db.Text
+  decisionBy         String?   @map("decision_by") @db.Uuid
+  decisionAt         DateTime? @map("decision_at") @db.Timestamptz(6)
+  submittedAt        DateTime? @map("submitted_at") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  participant     User                       @relation("ApplicationParticipant", fields: [participantId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  scheme          CertificationScheme        @relation(fields: [schemeId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  schedule        AssessmentSchedule         @relation(fields: [scheduleId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  decisionMaker   User?                      @relation("ApplicationDecisionMaker", fields: [decisionBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  storedDocuments StoredDocument[]
+  apl02Responses  ApplicationApl02[]
+  statusHistory   ApplicationStatusHistory[]
+  assessment      Assessment?
+  certificate     Certificate?
+  payments        SchemePayment[]
+
+  @@index([participantId, createdAt(sort: Desc)], map: "certification_applications_participant_idx")
+  @@index([status, createdAt], map: "certification_applications_status_idx")
+  @@index([scheduleId, status], map: "certification_applications_schedule_idx")
+  @@map("certification_applications")
+}
+
+model StoredDocument {
+  id              String   @id @db.Uuid
+  uploadedBy      String   @map("uploaded_by") @db.Uuid
+  applicationId   String?  @map("application_id") @db.Uuid
+  tukSubmissionId String?  @map("tuk_submission_id") @db.Uuid
+  documentType    String   @map("document_type") @db.VarChar(100)
+  category        String   @db.Text
+  originalName    String   @map("original_name") @db.VarChar(255)
+  mimeType        String   @map("mime_type") @db.VarChar(150)
+  sizeBytes       BigInt   @map("size_bytes") @db.BigInt
+  storageKey      String   @unique(map: "stored_documents_storage_key_key") @map("storage_key") @db.VarChar(100)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  uploader           User                       @relation("DocumentUploader", fields: [uploadedBy], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  application        CertificationApplication?  @relation(fields: [applicationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  tukSubmission      TukSubmission?             @relation(fields: [tukSubmissionId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  apl02Evidence      ApplicationApl02Evidence[]
+  assessmentEvidence AssessmentUnitEvidence[]
+  paymentProofs      SchemePayment[]            @relation("PaymentProof")
+
+  @@index([applicationId, category, documentType], map: "stored_documents_application_idx")
+  @@index([tukSubmissionId, documentType], map: "stored_documents_tuk_submission_idx")
+  @@map("stored_documents")
+}
+
+model ApplicationApl02 {
+  applicationId  String   @map("application_id") @db.Uuid
+  unitId         String   @map("unit_id") @db.Uuid
+  selfAssessment String   @map("self_assessment") @db.Text
+  notes          String   @default("") @db.Text
+  updatedAt      DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  application CertificationApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  unit        CompetencyUnit             @relation(fields: [unitId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  evidence    ApplicationApl02Evidence[]
+
+  @@id([applicationId, unitId], map: "application_apl02_pkey")
+  @@map("application_apl02")
+}
+
+model ApplicationApl02Evidence {
+  applicationId String @map("application_id") @db.Uuid
+  unitId        String @map("unit_id") @db.Uuid
+  documentId    String @map("document_id") @db.Uuid
+
+  response ApplicationApl02 @relation(fields: [applicationId, unitId], references: [applicationId, unitId], onDelete: Cascade, onUpdate: NoAction)
+  document StoredDocument   @relation(fields: [documentId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([applicationId, unitId, documentId], map: "application_apl02_evidence_pkey")
+  @@map("application_apl02_evidence")
+}
+
+model ApplicationStatusHistory {
+  id            String   @id @db.Uuid
+  applicationId String   @map("application_id") @db.Uuid
+  actorId       String?  @map("actor_id") @db.Uuid
+  fromStatus    String?  @map("from_status") @db.Text
+  toStatus      String   @map("to_status") @db.Text
+  reason        String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  application CertificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  actor       User?                    @relation("ApplicationHistoryActor", fields: [actorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([applicationId, createdAt], map: "application_status_history_app_idx")
+  @@map("application_status_history")
+}
+
+model TukSubmissionStatusHistory {
+  id              String   @id @db.Uuid
+  tukSubmissionId String   @map("tuk_submission_id") @db.Uuid
+  actorId         String?  @map("actor_id") @db.Uuid
+  fromStatus      String?  @map("from_status") @db.Text
+  toStatus        String   @map("to_status") @db.Text
+  reason          String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  tukSubmission TukSubmission @relation(fields: [tukSubmissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  actor         User?         @relation("TukHistoryActor", fields: [actorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tukSubmissionId, createdAt], map: "tuk_submission_status_history_app_idx")
+  @@map("tuk_submission_status_history")
+}
+
+model Assessment {
+  id                   String    @id @db.Uuid
+  applicationId        String    @unique(map: "assessments_application_id_key") @map("application_id") @db.Uuid
+  assessorId           String    @map("assessor_id") @db.Uuid
+  assignedBy           String    @map("assigned_by") @db.Uuid
+  preAssessmentOutcome String?   @map("pre_assessment_outcome") @db.Text
+  preAssessmentNotes   String    @default("") @map("pre_assessment_notes") @db.Text
+  assessmentNotes      String    @default("") @map("assessment_notes") @db.Text
+  recommendation       String?   @db.Text
+  recommendationNote   String?   @map("recommendation_note") @db.Text
+  recommendedAt        DateTime? @map("recommended_at") @db.Timestamptz(6)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  application CertificationApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  assessor    User                     @relation("AssessmentAssessor", fields: [assessorId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  assigner    User                     @relation("AssessmentAssigner", fields: [assignedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unitResults AssessmentUnitResult[]
+
+  @@index([assessorId, createdAt(sort: Desc)], map: "assessments_assessor_idx")
+  @@map("assessments")
+}
+
+model AssessmentUnitResult {
+  assessmentId  String   @map("assessment_id") @db.Uuid
+  unitId        String   @map("unit_id") @db.Uuid
+  result        String?  @db.Text
+  evidenceNotes String   @default("") @map("evidence_notes") @db.Text
+  notes         String   @default("") @db.Text
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  assessment Assessment               @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  unit       CompetencyUnit           @relation(fields: [unitId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  evidence   AssessmentUnitEvidence[]
+
+  @@id([assessmentId, unitId], map: "assessment_unit_results_pkey")
+  @@map("assessment_unit_results")
+}
+
+model AssessmentUnitEvidence {
+  assessmentId String @map("assessment_id") @db.Uuid
+  unitId       String @map("unit_id") @db.Uuid
+  documentId   String @map("document_id") @db.Uuid
+
+  result   AssessmentUnitResult @relation(fields: [assessmentId, unitId], references: [assessmentId, unitId], onDelete: Cascade, onUpdate: NoAction)
+  document StoredDocument       @relation(fields: [documentId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+
+  @@id([assessmentId, unitId, documentId], map: "assessment_unit_evidence_pkey")
+  @@map("assessment_unit_evidence")
+}
+
+model Certificate {
+  id                String   @id @db.Uuid
+  applicationId     String   @unique(map: "certificates_application_id_key") @map("application_id") @db.Uuid
+  certificateNumber String   @unique(map: "certificates_certificate_number_key") @map("certificate_number") @db.VarChar(100)
+  schemeName        String   @map("scheme_name") @db.VarChar(200)
+  issuedAt          DateTime @default(now()) @map("issued_at") @db.Timestamptz(6)
+  issuedBy          String   @map("issued_by") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  application CertificationApplication @relation(fields: [applicationId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  issuer      User                     @relation("CertificateIssuer", fields: [issuedBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("certificates")
+}
+
+model CertificateSequence {
+  issueYear Int    @id @map("issue_year") @db.Integer
+  lastValue BigInt @map("last_value") @db.BigInt
+
+  @@map("certificate_sequences")
+}
+
+model AuditLog {
+  id         String   @id @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  actorRole  String?  @map("actor_role") @db.Text
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(80)
+  entityId   String?  @map("entity_id") @db.Uuid
+  details    Json     @default("{}") @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([entityType, entityId, createdAt(sort: Desc)], map: "audit_logs_entity_idx")
+  @@index([actorId, createdAt(sort: Desc)], map: "audit_logs_actor_idx")
+  @@map("audit_logs")
+}
+
+model SchemePayment {
+  id                  String    @id @db.Uuid
+  applicationId       String    @map("application_id") @db.Uuid
+  participantId       String    @map("participant_id") @db.Uuid
+  amount              String    @default("") @db.VarChar(50)
+  bankName            String    @default("BCA") @map("bank_name") @db.VarChar(100)
+  accountNumber       String    @default("8730921829") @map("account_number") @db.VarChar(50)
+  accountHolder       String    @default("LSP TEKNOLOGI TERAMPIL") @map("account_holder") @db.VarChar(200)
+  senderBank          String    @default("") @map("sender_bank") @db.VarChar(100)
+  senderAccountName   String    @default("") @map("sender_account_name") @db.VarChar(200)
+  senderAccountNumber String    @default("") @map("sender_account_number") @db.VarChar(50)
+  transferAmount      String    @default("") @map("transfer_amount") @db.VarChar(50)
+  proofDocumentId     String?   @map("proof_document_id") @db.Uuid
+  status              String    @default("pending_payment") @db.VarChar(50)
+  notes               String    @default("") @db.Text
+  rejectionReason     String    @default("") @map("rejection_reason") @db.Text
+  csWhatsapp          String    @default("+6281298765432") @map("cs_whatsapp") @db.VarChar(50)
+  reviewedBy          String?   @map("reviewed_by") @db.Uuid
+  reviewedAt          DateTime? @map("reviewed_at") @db.Timestamptz(6)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  application   CertificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  participant   User                     @relation("SchemePaymentParticipant", fields: [participantId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  proofDocument StoredDocument?          @relation("PaymentProof", fields: [proofDocumentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  reviewer      User?                    @relation("SchemePaymentReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([applicationId], map: "scheme_payments_application_idx")
+  @@index([participantId], map: "scheme_payments_participant_idx")
+  @@index([status], map: "scheme_payments_status_idx")
+  @@map("scheme_payments")
+}

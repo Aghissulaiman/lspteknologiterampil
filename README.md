@@ -18,11 +18,19 @@ Frontend Next.js meneruskan `/api/*` ke Express melalui `API_URL` (default `http
    docker compose -f backend/docker-compose.yml up -d db
    ```
 
-3. Siapkan tabel akun, folder, dan sertifikasi:
+3. Siapkan tabel akun, folder, dan sertifikasi. Untuk database baru:
 
    ```bash
    npm run db:setup
    ```
+
+   Jika database sudah berisi skema yang dibuat sebelum Prisma dipakai, catat migration awal satu kali tanpa mengubah tabel:
+
+   ```bash
+   npm run db:migrate:baseline
+   ```
+
+   Jalankan perintah baseline hanya jika struktur database sudah sesuai dengan `backend/prisma/migrations/20261118170000_init/migration.sql`. Untuk membuat migration perubahan di lingkungan pengembangan, gunakan `npm run db:migrate -- --name nama_perubahan`; untuk menerapkan migration yang sudah dibuat, gunakan `npm run db:migrate:deploy`.
 
 4. Jalankan server Express dan Next.js di terminal terpisah dari root proyek:
 
