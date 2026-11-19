@@ -328,7 +328,7 @@ export default function InformasiKegiatan() {
               onClick={() => setActiveFilter(filter)}
               aria-pressed={activeFilter === filter}
               className={
-                "shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold transition " +
+                "min-h-11 shrink-0 rounded-md border px-4 py-2 text-sm font-semibold transition " +
                 (activeFilter === filter
                   ? "border-primary bg-primary text-primary-foreground shadow-sm"
                   : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground")
@@ -406,7 +406,7 @@ export default function InformasiKegiatan() {
                 onClick={() => setSelectedPhotoIndex(null)}
                 aria-label="Tutup foto"
                 autoFocus
-                className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
+                className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -421,7 +421,7 @@ export default function InformasiKegiatan() {
                       )
                     }
                     aria-label="Lihat foto sebelumnya"
-                    className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
+                    className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
@@ -433,7 +433,7 @@ export default function InformasiKegiatan() {
                       )
                     }
                     aria-label="Lihat foto berikutnya"
-                    className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
+                    className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950/70 text-white transition hover:bg-slate-950"
                   >
                     <ChevronRight className="h-6 w-6" />
                   </button>

@@ -1,11 +1,24 @@
 "use client";
 
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+
+type UserRole = "participant" | "assessor" | "admin_lsp";
+
+type SignedInUser = {
+  fullName: string;
+  role: UserRole;
+};
+
+const PORTAL_LINKS: Record<UserRole, { href: string; label: string }> = {
+  participant: { href: "/dashboard", label: "Dashboard Asesi" },
+  assessor: { href: "/asesor", label: "Dashboard Asesor" },
+  admin_lsp: { href: "/admin", label: "Panel Admin" },
+};
 
 const emptySubscribe = () => () => {};
 function useIsMounted() {
@@ -20,9 +33,49 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [signedInUser, setSignedInUser] = useState<SignedInUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const { theme, setTheme, resolvedTheme } = useTheme();
   const mounted = useIsMounted();
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        const user = data?.user;
+        const validRoles: UserRole[] = ["participant", "assessor", "admin_lsp"];
+
+        if (
+          typeof user?.fullName !== "string" ||
+          !validRoles.includes(user.role)
+        ) {
+          return null;
+        }
+
+        return { fullName: user.fullName, role: user.role as UserRole };
+      })
+      .then((user) => {
+        if (active) {
+          setSignedInUser(user);
+          setAuthChecked(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSignedInUser(null);
+          setAuthChecked(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const activeTheme = mounted ? resolvedTheme || theme : "light";
   const isDarkTheme = activeTheme === "dark";
@@ -108,7 +161,15 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md">
+    <header
+      className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setActiveDropdown(null);
+          setIsOpen(false);
+        }
+      }}
+    >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* Brand Logo */}
@@ -127,7 +188,7 @@ export default function Navbar() {
               LSP <span className="text-primary">Teknologi Terampil</span>
             </span>
             <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">
-              Lisensi BNSP
+              Layanan Sertifikasi Profesi
             </span>
           </div>
         </Link>
@@ -143,6 +204,8 @@ export default function Navbar() {
             >
               {item.children ? (
                 <button
+                  type="button"
+                  aria-expanded={activeDropdown === item.title}
                   className="flex items-center gap-1.5 px-4 py-2.5 text-base font-semibold text-foreground/80 hover:text-primary transition-colors cursor-pointer rounded-md hover:bg-accent/50"
                   onClick={() =>
                     setActiveDropdown(activeDropdown === item.title ? null : item.title)
@@ -172,6 +235,7 @@ export default function Navbar() {
                       <Link
                         key={subItem.name}
                         href={subItem.href}
+                        onClick={() => setActiveDropdown(null)}
                         className="block rounded-lg px-3.5 py-2.5 text-base font-medium text-foreground/90 hover:bg-accent hover:text-primary transition-colors"
                       >
                         {subItem.name}
@@ -188,11 +252,13 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 md:flex">
           {/* Switcher Tema */}
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="h-10 w-10 cursor-pointer rounded-md text-foreground transition-transform active:scale-95 select-none"
+            className="h-11 w-11 cursor-pointer rounded-md text-foreground transition-transform active:scale-95 select-none"
             aria-label="Ganti Tema"
+            aria-pressed={isDarkTheme}
           >
             {mounted && isDarkTheme ? (
               <Moon className="h-5 w-5 text-blue-400" />
@@ -201,23 +267,50 @@ export default function Navbar() {
             )}
           </Button>
 
-          {/* CTA Utama Pendaftaran */}
-          <Link
-            href="/auth/pendaftaran"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-          >
-            Daftar Sertifikasi
-          </Link>
+          {authChecked ? (
+            signedInUser ? (
+              <div className="flex items-center gap-3">
+                <span
+                  className="hidden max-w-36 truncate text-sm font-medium text-foreground xl:block"
+                  title={signedInUser.fullName}
+                >
+                  {signedInUser.fullName}
+                </span>
+                <Link
+                  href={PORTAL_LINKS[signedInUser.role].href}
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                  {PORTAL_LINKS[signedInUser.role].label}
+                </Link>
+              </div>
+            ) : (
+              <Link
+                href="/auth/pendaftaran"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              >
+                Daftar Sertifikasi
+              </Link>
+            )
+          ) : (
+            <span
+              role="status"
+              className="inline-flex min-h-11 items-center px-3 text-sm text-muted-foreground"
+            >
+              Memeriksa akun...
+            </span>
+          )}
         </div>
 
         {/* Mobile Toggle Button */}
         <div className="flex items-center gap-2 lg:hidden">
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="h-10 w-10 rounded-md text-foreground"
+            className="h-11 w-11 rounded-md text-foreground"
             aria-label="Ganti Tema"
+            aria-pressed={isDarkTheme}
           >
             {mounted && isDarkTheme ? (
               <Moon className="h-5 w-5 text-blue-400" />
@@ -227,10 +320,13 @@ export default function Navbar() {
           </Button>
 
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle Menu"
+            aria-label={isOpen ? "Tutup menu" : "Buka menu"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
@@ -238,63 +334,85 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Accordion Menu */}
-      {isOpen && (
-        <div className="border-b border-border bg-background px-4 pb-6 pt-3 lg:hidden space-y-2 max-h-[calc(100vh-5rem)] overflow-y-auto">
-          {menuItems.map((item) => (
-            <div key={item.title} className="border-b border-border/40 pb-2">
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => toggleMobileAccordion(item.title)}
-                    className="flex w-full items-center justify-between py-2.5 text-lg font-semibold text-foreground"
-                  >
-                    <span>{item.title}</span>
-                    <ChevronDown
-                      className={`h-5 w-5 transition-transform duration-200 ${
-                        mobileExpanded === item.title ? "rotate-180 text-primary" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {mobileExpanded === item.title && (
-                    <div className="pl-4 space-y-1 pt-1 pb-1">
-                      {item.children.map((subItem) => (
-                        <Link
-                          key={subItem.name}
-                          href={subItem.href}
-                          onClick={() => setIsOpen(false)}
-                          className="block py-2 text-base font-medium text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {subItem.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className="block py-2.5 text-lg font-semibold text-foreground hover:text-primary"
+      <div
+        id="mobile-navigation"
+        hidden={!isOpen}
+        className="border-b border-border bg-background px-4 pb-6 pt-3 lg:hidden space-y-2 max-h-[calc(100vh-5rem)] overflow-y-auto"
+      >
+        {menuItems.map((item) => (
+          <div key={item.title} className="border-b border-border/40 pb-2">
+            {item.children ? (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => toggleMobileAccordion(item.title)}
+                  aria-expanded={mobileExpanded === item.title}
+                  className="flex w-full items-center justify-between py-2.5 text-lg font-semibold text-foreground"
                 >
-                  {item.title}
-                </Link>
-              )}
-            </div>
-          ))}
+                  <span>{item.title}</span>
+                  <ChevronDown
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      mobileExpanded === item.title ? "rotate-180 text-primary" : ""
+                    }`}
+                  />
+                </button>
 
-          {/* Action Button Mobile */}
-          <div className="pt-4">
+                {mobileExpanded === item.title && (
+                  <div className="space-y-1 pb-1 pl-4 pt-1">
+                    {item.children.map((subItem) => (
+                      <Link
+                        key={subItem.name}
+                        href={subItem.href}
+                        onClick={() => setIsOpen(false)}
+                        className="flex min-h-11 items-center text-base font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      >
+                        {subItem.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className="block py-2.5 text-lg font-semibold text-foreground hover:text-primary"
+              >
+                {item.title}
+              </Link>
+            )}
+          </div>
+        ))}
+
+        <div className="pt-4">
+          {!authChecked ? (
+            <p role="status" className="py-3 text-center text-sm text-muted-foreground">
+              Memeriksa akun...
+            </p>
+          ) : signedInUser ? (
+            <div className="space-y-2">
+              <p className="text-center text-sm text-muted-foreground">
+                Masuk sebagai <span className="font-semibold text-foreground">{signedInUser.fullName}</span>
+              </p>
+              <Link
+                href={PORTAL_LINKS[signedInUser.role].href}
+                onClick={() => setIsOpen(false)}
+                className="flex min-h-11 w-full items-center justify-center rounded-md bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                {PORTAL_LINKS[signedInUser.role].label}
+              </Link>
+            </div>
+          ) : (
             <Link
               href="/auth/pendaftaran"
               onClick={() => setIsOpen(false)}
-              className="flex w-full h-11 items-center justify-center rounded-md text-base font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex min-h-11 w-full items-center justify-center rounded-md bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
             >
               Daftar Sertifikasi
             </Link>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }

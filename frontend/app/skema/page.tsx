@@ -6,7 +6,9 @@ export default function Skema() {
     return (
         <>
         <Navbar/>
-        <SkemaDaftar/>
+        <main>
+          <SkemaDaftar />
+        </main>
         <Footer/>
         </>
     )

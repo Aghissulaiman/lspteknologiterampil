@@ -1,400 +1,216 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import {
-  Newspaper,
-  Calendar,
-  Clock,
-  User,
   ArrowRight,
-  Search,
-  Tag,
-  TrendingUp,
-  ChevronRight,
-  Megaphone,
   Award,
-  CheckCircle2,
-  GraduationCap,
+  BookOpenCheck,
+  ClipboardCheck,
+  FileCheck2,
+  Newspaper,
+  Search,
 } from "lucide-react";
+
+const guides = [
+  {
+    title: "Menelusuri skema sertifikasi",
+    category: "Skema",
+    summary: "Pelajari ruang lingkup, unit kompetensi, dan persyaratan sebelum memilih skema.",
+    content:
+      "Buka halaman Skema Sertifikasi untuk melihat daftar skema yang tersedia. Periksa deskripsi, unit kompetensi, dan dokumen yang diminta pada setiap skema. Persyaratan dapat berbeda, jadi gunakan informasi pada detail skema yang akan dipilih.",
+    icon: BookOpenCheck,
+    href: "/skema",
+    action: "Lihat skema",
+  },
+  {
+    title: "Menyiapkan permohonan sertifikasi",
+    category: "Pendaftaran",
+    summary: "Buat akun peserta, pilih skema dan jadwal yang tersedia, lalu lengkapi data permohonan.",
+    content:
+      "Pendaftaran dimulai dengan akun peserta. Setelah memilih skema dan jadwal yang tersedia, lengkapi APL-01 serta dokumen sesuai persyaratan skema. Tinjau isian sebelum mengirim permohonan agar data yang diserahkan sudah benar.",
+    icon: FileCheck2,
+    href: "/auth/pendaftaran",
+    action: "Daftar peserta",
+  },
+  {
+    title: "Mengisi asesmen mandiri APL-02",
+    category: "Asesmen",
+    summary: "Jawab pertanyaan untuk setiap unit kompetensi dan lampirkan bukti yang relevan.",
+    content:
+      "Pada APL-02, peserta mengisi jawaban dan catatan untuk unit kompetensi yang tersedia. Dokumen pendukung dapat dilampirkan sebagai bukti. Sistem memeriksa kelengkapan isian saat permohonan dikirim.",
+    icon: ClipboardCheck,
+    href: "/auth/masuk",
+    action: "Masuk ke akun",
+  },
+  {
+    title: "Memeriksa nomor sertifikat",
+    category: "Sertifikat",
+    summary: "Masukkan nomor sertifikat untuk memeriksa status dan informasi penerbitannya.",
+    content:
+      "Gunakan halaman Cek Pemegang Sertifikat dan masukkan nomor yang tercetak pada sertifikat. Hasil pencarian menunjukkan apakah nomor tersebut tercatat, beserta nama pemegang, skema, dan tanggal terbit yang tersedia.",
+    icon: Award,
+    href: "/informasi/verifikasi-sertifikat",
+    action: "Cek sertifikat",
+  },
+];
+
+const categories = ["Semua", ...guides.map((guide) => guide.category)];
 
 export default function InformasiBerita() {
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const kategoriList = [
-    "Semua",
-    "Kelulusan Asesi",
-    "Jadwal Sertifikasi",
-    "Penyerahan Sertifikat",
-    "Update Skema",
-    "Kisah Sukses",
-  ];
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase("id-ID");
+  const visibleGuides = guides.filter((guide) => {
+    const matchesCategory =
+      selectedCategory === "Semua" || guide.category === selectedCategory;
+    const searchableText = `${guide.title} ${guide.category} ${guide.summary} ${guide.content}`;
+    const matchesSearch = searchableText.toLocaleLowerCase("id-ID").includes(normalizedQuery);
 
-  // Berita Utama / Featured News
-  const beritaUtama = {
-    id: 1,
-    judul:
-      "Sebanyak 150 Asesi Resmi Meraih Sertifikat Kompetensi BNSP Skema AI & Software Engineering",
-    ringkasan:
-      "Penyerahan e-Sertifikat digital secara simbolis diselenggarakan setelah seluruh peserta dinyatakan 'KOMPETEN' oleh Tim Asesor dalam uji kompetensi gelombang lalu.",
-    kategori: "Kelulusan Asesi",
-    tanggal: "05 Agustus 2026",
-    waktuBaca: "4 min baca",
-    penulis: "Sekretariat LSP Center",
-    gambar:
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop",
-    tag: "Berita Utama",
-  };
-
-  // Daftar Berita Terbaru
-  const daftarBerita = [
-    {
-      id: 2,
-      judul:
-        "Kisah Sukses Asesi: Berhasil Raih Rekomendasi 'Kompeten' Skema Fullstack Web Developer",
-      ringkasan:
-        "Pengalaman langsung dari peserta ujian yang membagikan strategi persiapan portofolio hingga sukses melalui sesi wawancara dan observasi praktik.",
-      kategori: "Kisah Sukses",
-      tanggal: "03 Agustus 2026",
-      waktuBaca: "5 min baca",
-      penulis: "Tim Redaksi LSP",
-      gambar:
-        "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      id: 3,
-      judul:
-        "Fitur Terbaru: Download e-Sertifikat Digital Ber-QR Code BNSP Langsung dari Dashboard",
-      ringkasan:
-        "Asesi yang dinyatakan kompeten kini tidak perlu menunggu pengiriman fisik, e-Sertifikat tervalidasi dapat langsung diunduh dan dilampirkan ke LinkedIn.",
-      kategori: "Penyerahan Sertifikat",
-      tanggal: "01 Agustus 2026",
-      waktuBaca: "3 min baca",
-      penulis: "Admin Sertifikasi",
-      gambar:
-        "https://images.unsplash.com/photo-1589330694653-aded6f78655b?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      id: 4,
-      judul:
-        "Pembukaan Pendaftaran Uji Kompetensi Gelombang IV 2026 Kuota Terbatas",
-      ringkasan:
-        "Pendaftaran sertifikasi dibuka untuk skema Artificial Intelligence, Digital Marketing, dan Teknisi Network. Dapatkan fasilitas tryout CBT gratis.",
-      kategori: "Jadwal Sertifikasi",
-      tanggal: "28 Juli 2026",
-      waktuBaca: "4 min baca",
-      penulis: "Tim Pendaftaran TUK",
-      gambar:
-        "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      id: 5,
-      judul:
-        "Update Standar MUK 2026: Penyesuaian Unit Kompetensi Sertifikasi Digital Marketing",
-      ringkasan:
-        "Komite Teknis menetapkan integrasi materi baru terkait AI marketing tools dan analisis data iklan pada perangkat asesmen terbaru.",
-      kategori: "Update Skema",
-      tanggal: "24 Juli 2026",
-      waktuBaca: "6 min baca",
-      penulis: "Komite Teknis LSP",
-      gambar:
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&auto=format&fit=crop",
-    },
-    {
-      id: 6,
-      judul:
-        "Tips Menghadapi Asesmen Mandiri (APL-02) Agar Lolos Verifikasi Berkas Tanpa Kendala",
-      ringkasan:
-        "Panduan praktis mengunggah bukti relevan, sertifikat pelatihan, dan portofolio kerja agar dinyatakan layak mengikuti uji praktik.",
-      kategori: "Kisah Sukses",
-      tanggal: "20 Juli 2026",
-      waktuBaca: "4 min baca",
-      penulis: "Master Asesor BNSP",
-      gambar:
-        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600&auto=format&fit=crop",
-    },
-  ];
-
-  // Pengumuman Penting Ringkas
-  const pengumumanKilat = [
-    {
-      tanggal: "06 Ags 2026",
-      teks: "Pengambilan Sertifikat Fisik BNSP Gelombang II dapat diambil di Sekretariat TUK atau dikirim via ekspedisi.",
-    },
-    {
-      tanggal: "02 Ags 2026",
-      teks: "Hasil Asesmen Gelombang III telah terbit. Silakan cek status 'Kompeten' pada dashboard akun masing-masing.",
-    },
-    {
-      tanggal: "29 Jul 2026",
-      teks: "Batas akhir verifikasi berkas APL-01 & APL-02 untuk Gelombang IV ditutup pada 12 Agustus 2026.",
-    },
-  ];
-
-  // Filter Berita berdasarkan Kategori dan Pencarian
-  const filteredBerita = daftarBerita.filter((item) => {
-    const matchCategory =
-      selectedCategory === "Semua" || item.kategori === selectedCategory;
-    const matchSearch =
-      item.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.ringkasan.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCategory && matchSearch;
+    return matchesCategory && matchesSearch;
   });
 
   return (
-    <section className="py-12 lg:py-20 bg-background text-foreground relative overflow-hidden">
-      {/* Visual Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-primary/5 rounded-full blur-[140px] pointer-events-none" />
+    <section className="bg-background py-12 text-foreground lg:py-20">
+      <div className="mx-auto max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
+        <header className="max-w-3xl">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">
+            Informasi sertifikasi
+          </p>
+          <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+            Berita dan panduan
+          </h1>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Baca panduan layanan sertifikasi atau cari topik yang Anda perlukan.
+          </p>
+        </header>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10 space-y-16">
-        
-        {/* Section 1: Berita Utama & Pengumuman Kilat */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Card Berita Utama (Foto Full Lebar di Atas, Teks di Bawah) */}
-          <div className="lg:col-span-2 bg-muted/20 border border-muted/30 rounded-3xl overflow-hidden group hover:border-primary/40 transition-all duration-300 flex flex-col">
-            {/* Foto Penuh Satu Container Atas */}
-            <div className="relative h-72 sm:h-96 w-full overflow-hidden shrink-0">
-              <img
-                src={beritaUtama.gambar}
-                alt={beritaUtama.judul}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute top-4 left-4 bg-primary text-primary-foreground text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
-                <GraduationCap className="h-3.5 w-3.5" />
-                <span>{beritaUtama.tag}</span>
-              </div>
-            </div>
-
-            {/* Seluruh Informasi Teks Tepat Di Bawah Foto */}
-            <div className="p-6 sm:p-8 space-y-4 flex-1 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-medium">
-                  <span className="flex items-center gap-1.5 text-primary font-bold">
-                    <Tag className="h-3.5 w-3.5" />
-                    {beritaUtama.kategori}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {beritaUtama.tanggal}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5" />
-                    {beritaUtama.waktuBaca}
-                  </span>
-                </div>
-
-                {/* UBAH DI SINI: group-hover:text-orange-500 */}
-                <h2 className="text-xl sm:text-3xl font-black text-foreground group-hover:text-orange-500 transition-colors leading-snug">
-                  {beritaUtama.judul}
-                </h2>
-
-                <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
-                  {beritaUtama.ringkasan}
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-muted/30 flex items-center justify-between mt-4">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5 text-primary" />
-                  {beritaUtama.penulis}
-                </span>
-
-                {/* UBAH DI SINI: hover:text-orange-500 & transition-colors */}
-                <a
-                  href="#"
-                  className="inline-flex items-center gap-2 text-xs font-bold text-primary hover:text-orange-500 hover:underline transition-colors"
-                >
-                  <span>Baca Selengkapnya</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar Pengumuman Kilat */}
-          <div className="bg-muted/20 border border-muted/30 p-6 sm:p-8 rounded-3xl space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-muted/30">
-              <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                <Megaphone className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-foreground">
-                  Pengumuman Asesi
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Info penting seputar sertifikat
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {pengumumanKilat.map((info, idx) => (
-                <div
-                  key={idx}
-                  className="bg-background p-4 rounded-2xl border border-muted/20 space-y-2 hover:border-primary/30 transition-all"
-                >
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-primary px-2 py-0.5 rounded-full bg-primary/10">
-                    {info.tanggal}
-                  </span>
-                  <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                    {info.teks}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-2">
-              <div className="flex items-center gap-2 text-primary font-bold text-xs">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Cek Validitas Sertifikat</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
-                Verifikasi keaslian nomor registrasi e-Sertifikat BNSP Anda
-                melalui sistem pencarian cepat.
+        <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div className="flex items-start gap-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Newspaper className="h-5 w-5" />
+            </span>
+            <div>
+              <h2 className="font-bold">Belum ada berita kegiatan yang dipublikasikan</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Panduan di bawah merangkum alur layanan yang tersedia di situs ini. Informasi kegiatan aktual dapat dilihat pada halaman Kegiatan.
               </p>
             </div>
           </div>
+          <Link
+            href="/informasi/kegiatan"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Lihat kegiatan
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
-        {/* Section 2: Filter, Search & Grid Berita */}
-        <div className="space-y-8">
-          {/* Controls Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-muted/20 p-4 rounded-3xl border border-muted/30">
-            {/* Category Filter Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
-              {kategoriList.map((kat, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedCategory(kat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${selectedCategory === kat
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-background/60 text-muted-foreground hover:bg-orange-500 hover:text-white"
-                    }`}
-                >
-                  {kat}
-                </button>
-              ))}
+        <section aria-labelledby="guides-title" className="space-y-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 id="guides-title" className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Panduan layanan
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Pilih kategori atau cari kata kunci untuk menyaring panduan.
+              </p>
             </div>
 
-            {/* Search Input Bar */}
-            <div className="relative w-full md:w-72 shrink-0">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="relative w-full lg:max-w-sm">
+              <label htmlFor="guide-search" className="sr-only">
+                Cari berita dan panduan
+              </label>
+              <Search
+                aria-hidden="true"
+                className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              />
               <input
-                type="text"
-                placeholder="Cari berita atau sertifikat..."
+                id="guide-search"
+                type="search"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-background border border-muted/30 rounded-2xl pl-10 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Cari topik"
+                className="min-h-11 w-full rounded-xl border border-input bg-background pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
           </div>
 
-          {/* Grid Berita Terbaru */}
-          {filteredBerita.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredBerita.map((item) => (
-                <article
-                  key={item.id}
-                 
-                  className="bg-background border border-muted/30 rounded-3xl overflow-hidden hover:shadow-lg hover:border-orange-500/50 transition-all duration-300 flex flex-col justify-between group"
-                >
-                  <div>
-                    {/* Thumbnail Image */}
-                    <div className="relative h-48 w-full overflow-hidden">
-                      <img
-                        src={item.gambar}
-                        alt={item.judul}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <span className="absolute top-3 left-3 bg-background/90 backdrop-blur-md text-primary text-[10px] font-bold px-2.5 py-1 rounded-full border border-muted/20">
-                        {item.kategori}
-                      </span>
-                    </div>
+          <div className="flex gap-2 overflow-x-auto pb-2" aria-label="Filter kategori panduan">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                aria-pressed={selectedCategory === category}
+                className={`min-h-11 shrink-0 rounded-md border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  selectedCategory === category
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
 
-                    {/* Content Text */}
-                    <div className="p-6 space-y-3">
-                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-medium">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {item.tanggal}
+          {visibleGuides.length > 0 ? (
+            <ul className="grid gap-5 md:grid-cols-2">
+              {visibleGuides.map((guide) => {
+                const Icon = guide.icon;
+
+                return (
+                  <li key={guide.title}>
+                    <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 sm:p-6">
+                      <div className="flex items-start gap-4">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Icon className="h-5 w-5" />
                         </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {item.waktuBaca}
-                        </span>
+                        <div>
+                          <span className="text-xs font-semibold text-primary">
+                            {guide.category}
+                          </span>
+                          <h3 className="mt-1 text-lg font-bold leading-snug">
+                            {guide.title}
+                          </h3>
+                        </div>
                       </div>
 
-                      {/* Ubah warna hover judul di sini: group-hover:text-orange-500 */}
-                      <h3 className="font-bold text-base text-foreground group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
-                        {item.judul}
-                      </h3>
-
-                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
-                        {item.ringkasan}
+                      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                        {guide.summary}
                       </p>
-                    </div>
-                  </div>
 
-                  {/* Card Footer */}
-                  <div className="p-6 pt-0 border-t border-muted/20 mt-4 flex items-center justify-between">
-                    <span className="text-[11px] text-muted-foreground font-medium">
-                      Oleh {item.penulis}
-                    </span>
-
-                    {/* Ubah hover tombol panah di sini: group-hover:bg-orange-500 group-hover:text-white */}
-                    <a
-                      href="#"
-                      className="p-2 rounded-xl bg-orange-500/10 text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
+                      <details className="mt-4 border-t border-border pt-4">
+                        <summary className="min-h-11 cursor-pointer content-center text-sm font-semibold text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                          Baca panduan
+                        </summary>
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                          {guide.content}
+                        </p>
+                        <Link
+                          href={guide.href}
+                          className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                        >
+                          {guide.action}
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </details>
+                    </article>
+                  </li>
+                );
+              })}
+            </ul>
           ) : (
-            /* Empty State */
-            <div className="text-center py-16 bg-muted/10 rounded-3xl space-y-3 border border-dashed border-muted/30">
-              <Newspaper className="h-10 w-10 text-muted-foreground mx-auto" />
-              <h3 className="font-bold text-base text-foreground">
-                Tidak Ada Berita Ditemukan
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                Coba ubah kata kunci pencarian atau pilih kategori yang lain.
+            <div className="rounded-2xl border border-dashed border-border bg-muted/20 px-5 py-12 text-center">
+              <Search className="mx-auto h-8 w-8 text-muted-foreground" />
+              <h3 className="mt-3 font-bold">Panduan tidak ditemukan</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ganti kata kunci atau pilih kategori lain.
               </p>
             </div>
           )}
-        </div>
-
-        {/* Section 3: Banner Buletin Info Sertifikasi */}
-        <div className="mx-auto max-w-4xl bg-muted/30 border border-muted/30 p-6 sm:p-10 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4 text-left">
-            <div className="p-4 rounded-2xl bg-primary/10 text-primary shrink-0">
-              <TrendingUp className="h-7 w-7" />
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-foreground">
-                Ingin Mengetahui Jadwal Uji Kompetensi Selanjutnya?
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Daftarkan email Anda untuk menerima notifikasi pembukaan
-                gelombang sertifikasi dan pengumuman kelulusan.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-            <input
-              type="email"
-              placeholder="Masukkan email Anda..."
-              className="bg-background border border-muted/30 rounded-2xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground w-full sm:w-60"
-            />
-            <button className="rounded-2xl bg-foreground text-background px-5 py-3 text-xs font-bold hover:bg-foreground/90 transition-all shrink-0">
-              Langganan
-            </button>
-          </div>
-        </div>
+        </section>
       </div>
     </section>
   );

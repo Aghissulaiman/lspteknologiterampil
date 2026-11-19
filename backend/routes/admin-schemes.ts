@@ -22,7 +22,7 @@ function structureFrom(body: Record<string, unknown>) {
     const title = cleanString(value.title);
     const description = cleanString(value.description);
     const sortOrder = Number.isSafeInteger(value.sortOrder) && Number(value.sortOrder) >= 0 ? Number(value.sortOrder) : units.length;
-    if (!/^[a-zA-Z0-9_-]{1,80}$/.test(code) || title.length < 2 || title.length > 250 || description.length > 5000) {
+    if (!/^[a-zA-Z0-9._-]{1,80}$/.test(code) || title.length < 2 || title.length > 250 || description.length > 5000) {
       throw new HttpError(400, "Kode, nama, atau deskripsi unit kompetensi tidak valid.");
     }
     if (unitCodes.has(code.toLowerCase())) throw new HttpError(400, "Kode unit kompetensi tidak boleh berulang.");

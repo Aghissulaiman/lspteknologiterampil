@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 
 export default function KegiatanPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <InformasiKegiatan />
+      <main>
+        <InformasiKegiatan />
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }

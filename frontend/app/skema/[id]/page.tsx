@@ -53,6 +53,28 @@ export default function DetailSkemaPage() {
     const [scheme, setScheme] = useState<PublicSchemeDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [accountStatus, setAccountStatus] = useState<"checking" | "participant" | "guest">("checking");
+
+    useEffect(() => {
+        let active = true;
+
+        fetch("/api/auth/me", { cache: "no-store" })
+            .then(async (response) => {
+                if (!response.ok) return false;
+                const data = await response.json();
+                return data?.user?.role === "participant";
+            })
+            .then((isParticipant) => {
+                if (active) setAccountStatus(isParticipant ? "participant" : "guest");
+            })
+            .catch(() => {
+                if (active) setAccountStatus("guest");
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     useEffect(() => {
         let active = true;
@@ -209,14 +231,32 @@ export default function DetailSkemaPage() {
                                 </section>
 
                                 <section className="rounded-xl border border-primary/20 bg-primary/[0.04] p-5 sm:p-6">
-                                    <h2 className="font-bold">Siap mendaftar?</h2>
-                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Masuk atau buat akun peserta untuk melanjutkan pendaftaran sertifikasi.</p>
-                                    <Link href="/auth/pendaftaran" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-                                        Buat akun peserta
-                                    </Link>
-                                    <Link href="/auth/masuk" className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                                        Sudah punya akun? Masuk
-                                    </Link>
+                                    <h2 className="font-bold">{accountStatus === "participant" ? "Lanjutkan pendaftaran" : "Siap mendaftar?"}</h2>
+                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                        {accountStatus === "participant"
+                                            ? "Akun asesi Anda sudah aktif. Lanjutkan melalui Dashboard Asesi."
+                                            : accountStatus === "checking"
+                                                ? "Memeriksa status akun Anda..."
+                                                : "Masuk atau buat akun peserta untuk melanjutkan pendaftaran sertifikasi."}
+                                    </p>
+                                    {accountStatus === "participant" ? (
+                                        <Link href="/dashboard" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                                            Lanjut ke Dashboard Asesi
+                                        </Link>
+                                    ) : accountStatus === "checking" ? (
+                                        <button type="button" disabled aria-busy="true" className="mt-4 inline-flex min-h-11 w-full cursor-wait items-center justify-center rounded-lg bg-primary/60 px-4 py-2.5 text-sm font-semibold text-primary-foreground">
+                                            Memeriksa akun...
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <Link href="/auth/pendaftaran" className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
+                                                Buat akun peserta
+                                            </Link>
+                                            <Link href="/auth/masuk" className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                                                Sudah punya akun? Masuk
+                                            </Link>
+                                        </>
+                                    )}
                                 </section>
 
                                 <button

@@ -20,10 +20,6 @@ function roleDestination(role: UserRole) {
   return "/dashboard";
 }
 
-function isUserRole(role: unknown): role is UserRole {
-  return role === "participant" || role === "assessor" || role === "admin_lsp";
-}
-
 router.post("/register", async (request, response) => {
   if (!isPlainObject(request.body)) return authFailure(request, response, 400, "Format data tidak valid.", "/auth/pendaftaran", "invalid");
 
@@ -82,9 +78,6 @@ router.post("/register", async (request, response) => {
 router.post("/login", async (request, response) => {
   if (!isPlainObject(request.body)) return authFailure(request, response, 400, "Format data tidak valid.", "/auth/masuk", "invalid");
 
-  const role = request.body.role;
-  if (!isUserRole(role)) return authFailure(request, response, 400, "Pilih peran yang valid.", "/auth/masuk", "invalid");
-
   const email = cleanString(request.body.email).toLowerCase();
   const password = typeof request.body.password === "string" ? request.body.password : "";
   if (!email || !password || email.length > 254 || password.length > 128) {
@@ -93,8 +86,8 @@ router.post("/login", async (request, response) => {
 
   try {
     const user = await findUserByEmail(email);
-    if (!user || !(await verifyPassword(password, user.passwordHash)) || user.role !== role) {
-      return authFailure(request, response, 401, "Email, kata sandi, atau peran tidak sesuai.", "/auth/masuk", "invalid");
+    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+      return authFailure(request, response, 401, "Email atau kata sandi tidak sesuai.", "/auth/masuk", "invalid");
     }
     setSessionCookie(response, user.id);
     if (isFormRequest(request)) return response.redirect(303, roleDestination(user.role));

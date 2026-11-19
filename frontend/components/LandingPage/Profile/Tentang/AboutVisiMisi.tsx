@@ -84,8 +84,7 @@
 //   );
 // }
 
-import React from "react";
-import { Target, Compass, Sparkles } from "lucide-react";
+import { Target, Compass, Flag } from "lucide-react";
 
 export default function AboutVisiMisi() {
   const misiPoints = [
@@ -105,7 +104,7 @@ export default function AboutVisiMisi() {
       id: 3,
       title: "Menjamin Mutu Infrastruktur & Penguji",
       description:
-        "Menyediakan tenaga Asesor berlisensi BNSP yang profesional serta Tempat Uji Kompetensi (TUK) dengan fasilitas teknologi berstandar tinggi.",
+        "Menyiapkan asesor dan Tempat Uji Kompetensi dengan fasilitas yang sesuai kebutuhan skema.",
     },
     {
       id: 4,
@@ -128,7 +127,7 @@ export default function AboutVisiMisi() {
             {/* Label & Judul Visi (Kiri) */}
             <div className="md:w-1/3 shrink-0 space-y-2 border-b md:border-b-0 md:border-r border-border pb-5 md:pb-0 md:pr-8">
               <div className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-secondary">
-                <Sparkles className="h-3.5 w-3.5" />
+                <Flag className="h-3.5 w-3.5" />
                 <span>Cita-Cita Utama</span>
               </div>
               <div className="flex items-center gap-3 pt-1">

@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ClipboardCheck, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,12 +9,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-
-const roleOptions: { value: string; label: string; Icon: typeof UserRound }[] = [
-  { value: "participant", label: "Asesi", Icon: UserRound },
-  { value: "assessor", label: "Asesor", Icon: ClipboardCheck },
-  { value: "admin_lsp", label: "Admin", Icon: ShieldCheck },
-];
 
 export default function MasukForm({ error }: { error?: string }) {
   return (
@@ -59,43 +52,12 @@ export default function MasukForm({ error }: { error?: string }) {
                     Masuk ke Akun
                   </h1>
                   <p className="text-xs text-balance text-muted-foreground">
-                    Pilih peran Anda dan masukkan akun untuk melanjutkan
+                    Masukkan email dan kata sandi untuk melanjutkan
                   </p>
                 </div>
 
-                <fieldset className="space-y-1.5">
-                  <legend className="text-xs font-medium text-foreground">
-                    Pilih Peran Anda
-                  </legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {roleOptions.map(({ value, label, Icon }) => {
-                      return (
-                        <label key={value} className="relative block cursor-pointer">
-                          <input
-                            type="radio"
-                            name="role"
-                            value={value}
-                            defaultChecked={value === "participant"}
-                            required
-                            className="peer sr-only"
-                          />
-                          <span className="flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-lg border border-border bg-background/60 px-2 py-2 text-center text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:text-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
-                            <Icon className="h-5 w-5" aria-hidden="true" />
-                            <span className="text-[11px] font-semibold leading-tight">
-                              {label}
-                            </span>
-                          </span>
-                          <span className="absolute right-1.5 top-1.5 hidden h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground peer-checked:flex" aria-hidden="true">
-                            ✓
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </fieldset>
-
                 {/* Input Khusus Email */}
-                <Field className="gap-1">
+                <Field className="space-y-3">
                   <FieldLabel
                     htmlFor="email"
                     className="text-xs text-foreground font-medium"
@@ -114,21 +76,13 @@ export default function MasukForm({ error }: { error?: string }) {
                 </Field>
 
                 {/* Input Password */}
-                <Field className="gap-1">
-                  <div className="flex items-center justify-between">
-                    <FieldLabel
-                      htmlFor="password"
-                      className="text-xs text-foreground font-medium"
-                    >
-                      Kata Sandi
-                    </FieldLabel>
-                    <Link
-                      href="#"
-                      className="text-[11px] font-medium text-primary hover:underline"
-                    >
-                      Lupa kata sandi?
-                    </Link>
-                  </div>
+                <Field className="space-y-3">
+                  <FieldLabel
+                    htmlFor="password"
+                    className="text-xs text-foreground font-medium"
+                  >
+                    Kata Sandi
+                  </FieldLabel>
                   <Input
                     id="password"
                     name="password"

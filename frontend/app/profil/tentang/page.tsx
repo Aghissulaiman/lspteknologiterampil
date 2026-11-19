@@ -10,12 +10,13 @@ export const metadata = {
 
 export default function TentangLSPPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar/>
-      <AboutHero />
-      <AboutVisiMisi/>
-      <Footer/>
-  
-    </main>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>
+        <AboutHero />
+        <AboutVisiMisi />
+      </main>
+      <Footer />
+    </div>
   );
 }

@@ -1,6 +1,3 @@
-"use client";
-
-import React from "react";
 import { UserPlus, FileCheck, Award, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default function Workflow() {
@@ -17,7 +14,7 @@ export default function Workflow() {
       icon: FileCheck,
       title: "Asesmen Mandiri & Verifikasi",
       description:
-        "Isi formulir penilaian mandiri (APL-02). Admin dan Asesor akan memverifikasi berkasmu serta menentukan jadwal ujian.",
+        "Lengkapi APL-02 dan kirim dokumen persyaratan. Admin memeriksa kelengkapan sebelum permohonan berlanjut.",
     },
     {
       step: "03",
@@ -31,7 +28,7 @@ export default function Workflow() {
       icon: Award,
       title: "Penerbitan Sertifikat",
       description:
-        "Peserta yang dinyatakan Kompeten (K) akan memperoleh Sertifikat Kompetensi resmi berlisensi BNSP.",
+        "Admin LSP menetapkan keputusan akhir. Sertifikat diterbitkan untuk permohonan yang dinyatakan kompeten.",
     },
   ];
 
@@ -71,7 +68,6 @@ export default function Workflow() {
                   bg-card
                   border
                   border-border/80
-                  cursor-pointer
                   shadow-none
 
                   /* Transisi Mantul (Spring Effect) */

@@ -1,49 +1,47 @@
-"use client";
-
-import React from "react";
+import Link from "next/link";
 import { 
-  BookOpen, 
-  Video, 
-  TrendingUp, 
-  Users, 
-  ClipboardList,
-  ShieldCheck
+  Award,
+  BriefcaseBusiness,
+  FileText,
+  GraduationCap,
+  Image as ImageIcon,
+  IdCard,
 } from "lucide-react";
 
 export default function Features() {
   const features = [
     {
-      icon: BookOpen,
-      title: "Identitas Diri Resmi",
+      icon: IdCard,
+      title: "Identitas diri",
       description:
-        "Scan KTP, KIA, atau Kartu Pelajar/Mahasiswa yang masih berlaku.",
+        "Siapkan identitas sesuai persyaratan skema yang dipilih.",
     },
     {
-      icon: Users,
+      icon: ImageIcon,
       title: "Pasfoto Formal",
       description:
-        "Pasfoto berwarna terbaru ukuran 3x4 dengan latar belakang merah.",
+        "Lampirkan pasfoto terbaru jika diminta oleh skema.",
     },
     {
-      icon: Video, // Cocok untuk skema IT/Digital (bisa juga diganti Monitor)
+      icon: GraduationCap,
       title: "Bukti Pendidikan",
       description:
-        "Scan Ijazah terakhir, Transkrip Nilai, atau Raport semester akhir.",
+        "Gunakan ijazah atau bukti pendidikan lain sesuai persyaratan.",
     },
     {
-      icon: TrendingUp,
+      icon: Award,
       title: "Sertifikat Pelatihan",
-      description: "Sertifikat kursus atau pelatihan yang relevan dengan skema pilihan.",
+      description: "Sertakan bukti pelatihan yang relevan jika dipersyaratkan.",
     },
     {
-      icon: ShieldCheck, // Menggantikan Users yang duplikat di kodemu
-      title: "Pengalaman / Magang",
-      description: "Surat keterangan kerja dari industri atau sertifikat selesai PKL/Magang.",
+      icon: BriefcaseBusiness,
+      title: "Pengalaman kerja",
+      description: "Lampirkan bukti kerja atau magang jika diminta.",
     },
     {
-      icon: ClipboardList,
+      icon: FileText,
       title: "Portofolio & CV",
-      description: "Daftar Riwayat Hidup (CV) terbaru beserta bukti karya/projek sesuai skema.",
+      description: "Pilih CV dan bukti karya yang sesuai dengan unit kompetensi.",
     },
   ];
 
@@ -52,13 +50,13 @@ export default function Features() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Judul Utama */}
-        <div className="text-center mb-12">
+        <div className="mx-auto mb-10 max-w-3xl text-center">
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            Semua yang Anda Butuhkan untuk{" "}
-            <span className="text-primary transition-colors duration-300 hover:text-orange-500">
-              Dapatkan Sertifikasi
-            </span>
+            Siapkan berkas untuk sertifikasi
           </h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Persyaratan dapat berbeda untuk tiap skema. Buka detail skema untuk melihat dokumen yang perlu disiapkan.
+          </p>
         </div>
 
         {/* Grid Card */}
@@ -69,108 +67,29 @@ export default function Features() {
             return (
               <div
                 key={index}
-                className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-2xl
-                  border-2
-                  border-border
-                  bg-card
-                  p-6
-                  text-center
-                  transition-all
-                  duration-300
-                  cursor-pointer
-
-                  /* BORDER LUAR & GLOW OUTSIDE */
-                  hover:border-orange-500
-                  hover:shadow-[0_0_20px_rgba(249,115,22,0.25)]
-                  hover:-translate-y-1.5
-                "
+                className="rounded-2xl border border-border bg-card p-6 text-center"
               >
-                {/* PENDARAN BULAT ORANYE DI DALAM CARD (INNER GLOW) */}
-                <div
-                  className="
-                    pointer-events-none
-                    absolute
-                    -bottom-10
-                    left-1/2
-                    -translate-x-1/2
-                    h-36
-                    w-36
-                    rounded-full
-                    bg-orange-500/20
-                    blur-2xl
-                    opacity-0
-                    transition-opacity
-                    duration-500
-                    group-hover:opacity-100
-                  "
-                />
-
-                {/* CONTENT */}
-                <div className="relative z-10 flex flex-col items-center">
-
-                  {/* Icon */}
-                  <div
-                    className="
-                      mb-5
-                      flex
-                      h-14
-                      w-14
-                      items-center
-                      justify-center
-                      rounded-2xl
-                      bg-blue-50
-                      text-blue-600
-
-                      transition-all
-                      duration-300
-
-                      group-hover:bg-orange-500
-                      group-hover:text-white
-                      group-hover:shadow-[0_0_15px_rgba(249,115,22,0.4)]
-                      group-hover:scale-105
-                    "
-                  >
-                    <IconComponent className="h-7 w-7 transition-all duration-300" />
-                  </div>
-
-                  {/* Title */}
-                  <h3
-                    className="
-                      text-base
-                      font-bold
-                      text-foreground
-                      leading-snug
-                      mb-2
-                      transition-colors
-                      duration-300
-                      group-hover:text-orange-600
-                    "
-                  >
-                    {feature.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p
-                    className="
-                      text-xs
-                      text-muted-foreground
-                      leading-relaxed
-                      transition-colors
-                      duration-300
-                      group-hover:text-foreground
-                    "
-                  >
-                    {feature.description}
-                  </p>
-
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-accent text-primary">
+                  <IconComponent aria-hidden="true" className="h-7 w-7" />
                 </div>
+                <h3 className="mb-2 text-base font-bold leading-snug text-foreground">
+                  {feature.title}
+                </h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {feature.description}
+                </p>
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-8 text-center">
+          <Link
+            href="/skema"
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            Periksa persyaratan skema
+          </Link>
         </div>
 
       </div>

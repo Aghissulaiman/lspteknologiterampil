@@ -1,7 +1,7 @@
 import MasukForm from "@/components/Masuk";
 
 const errorMessages: Record<string, string> = {
-  invalid: "Email, kata sandi, atau peran tidak sesuai.",
+  invalid: "Email atau kata sandi tidak sesuai.",
   unavailable: "Masuk belum dapat diproses. Coba lagi.",
 };
 

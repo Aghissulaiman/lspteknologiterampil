@@ -1,305 +1,286 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Search,
-  CheckCircle2,
-  XCircle,
+  AlertCircle,
   Award,
-  ShieldCheck,
-  Download,
-  QrCode,
   Calendar,
-  User,
-  Building2,
+  CheckCircle2,
   FileBadge,
   RotateCcw,
-  ExternalLink,
+  Search,
+  UserRound,
 } from "lucide-react";
 
-// Tipe Data Hasil Verifikasi
-interface CertificateData {
-  nomorRegistrasi: string;
-  nomorSertifikat: string;
-  namaLengkap: string;
-  skemaKompetensi: string;
-  bidang: string;
-  status: "VALID" | "EXPIRED" | "NOT_FOUND";
-  tanggalTerbit: string;
-  tanggalMasaBerlaku: string;
-  penerbit: string;
-  asesor: string;
-}
+type CertificateResult = {
+  valid: true;
+  certificate_number: string;
+  scheme_name: string;
+  issued_at: string;
+  participant_name: string;
+  scheme_code: string | null;
+};
+
+type LookupStatus = "idle" | "loading" | "valid" | "not-found" | "error";
 
 export default function VerifikasiSertifikat() {
   const [searchKey, setSearchKey] = useState("");
-  const [isSearched, setIsSearched] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<CertificateData | null>(null);
+  const [status, setStatus] = useState<LookupStatus>("idle");
+  const [result, setResult] = useState<CertificateResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Data Dummy untuk Simulasi Verifikasi
-  const dummyDatabase: Record<string, CertificateData> = {
-    "BNSP-2026-88912": {
-      nomorRegistrasi: "BNSP-2026-88912",
-      nomorSertifikat: "50300 2411 0001234 2026",
-      namaLengkap: "Aghis Sulaiman",
-      skemaKompetensi: "Software Engineering & Web Development Specialist",
-      bidang: "Teknologi Informasi dan Komunikasi",
-      status: "VALID",
-      tanggalTerbit: "04 Agustus 2026",
-      tanggalMasaBerlaku: "04 Agustus 2029",
-      penerbit: "LSP Teknologi Digital / TUK Daring Center",
-      asesor: "Master Asesor BNSP Team",
-    },
-    "BNSP-2026-11029": {
-      nomorRegistrasi: "BNSP-2026-11029",
-      nomorSertifikat: "50300 2411 0005678 2026",
-      namaLengkap: "Nadya Cheril",
-      skemaKompetensi: "Digital Marketing Manager",
-      bidang: "Pemasaran Digital & Bisnis",
-      status: "VALID",
-      tanggalTerbit: "15 Juli 2026",
-      tanggalMasaBerlaku: "15 Juli 2029",
-      penerbit: "LSP Teknologi Digital / TUK Daring Center",
-      asesor: "Tim Asesor Utama",
-    },
-  };
+  const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const certificateNumber = searchKey.trim();
+    if (!certificateNumber) return;
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchKey.trim()) return;
+    setStatus("loading");
+    setResult(null);
+    setErrorMessage("");
 
-    setLoading(true);
-    setIsSearched(false);
+    try {
+      const response = await fetch(
+        `/api/public/certificates/${encodeURIComponent(certificateNumber)}`,
+        { cache: "no-store" },
+      );
 
-    setTimeout(() => {
-      const found = dummyDatabase[searchKey.trim()];
-      if (found) {
-        setResult(found);
-      } else {
-        setResult(null);
+      if (response.status === 404) {
+        setStatus("not-found");
+        return;
       }
-      setLoading(false);
-      setIsSearched(true);
-    }, 600);
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        valid?: boolean;
+        certificate_number?: string;
+        scheme_name?: string;
+        issued_at?: string;
+        participant_name?: string;
+        scheme_code?: string | null;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Verifikasi belum dapat diproses.");
+      }
+
+      if (
+        payload.valid !== true ||
+        !payload.certificate_number ||
+        !payload.scheme_name ||
+        !payload.participant_name ||
+        !payload.issued_at
+      ) {
+        throw new Error("Data sertifikat belum lengkap.");
+      }
+
+      setResult({
+        valid: true,
+        certificate_number: payload.certificate_number,
+        scheme_name: payload.scheme_name,
+        issued_at: payload.issued_at,
+        participant_name: payload.participant_name,
+        scheme_code: payload.scheme_code ?? null,
+      });
+      setStatus("valid");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof TypeError
+          ? "Layanan verifikasi belum dapat dihubungi. Coba kembali beberapa saat lagi."
+          : error instanceof Error
+            ? error.message
+            : "Sertifikat belum dapat diverifikasi. Coba kembali.",
+      );
+      setStatus("error");
+    }
   };
 
   const handleReset = () => {
     setSearchKey("");
-    setIsSearched(false);
     setResult(null);
+    setErrorMessage("");
+    setStatus("idle");
   };
 
   return (
-    <section className="py-12 lg:py-20 bg-background text-foreground relative overflow-hidden">
-      {/* Visual Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-primary/5 rounded-full blur-[140px] pointer-events-none" />
-
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
-        {/* Header Section */}
-        <div className="text-center max-w-2xl mx-auto space-y-4">
-          <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl text-foreground">
-            Verifikasi Keaslian Sertifikat
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Masukkan Nomor Registrasi BNSP atau Nomor Sertifikat untuk memastikan keaslian status kompetensi asesi.
+    <section className="bg-background py-12 text-foreground lg:py-20">
+      <div className="mx-auto max-w-4xl space-y-10 px-4 sm:px-6 lg:px-8">
+        <header className="mx-auto max-w-2xl space-y-4 text-center">
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">
+            Layanan publik
           </p>
-        </div>
+          <h1 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
+            Cek Pemegang Sertifikat
+          </h1>
+          <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Masukkan nomor sertifikat untuk memeriksa apakah nomor tersebut tercatat pada basis data LSP.
+          </p>
+        </header>
 
-        {/* Search Box Card */}
-        <div className="bg-muted/20 border border-muted/30 p-6 sm:p-8 rounded-3xl space-y-6 shadow-sm">
+        <div className="space-y-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
           <form onSubmit={handleSearch} className="space-y-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Cari Berdasarkan Nomor Registrasi / Sertifikat
+            <label
+              htmlFor="certificate-number"
+              className="block text-sm font-bold text-foreground"
+            >
+              Nomor sertifikat
             </label>
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <div className="relative w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative min-w-0 flex-1">
+                <FileBadge
+                  aria-hidden="true"
+                  className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+                />
                 <input
+                  id="certificate-number"
+                  name="certificateNumber"
                   type="text"
+                  autoComplete="off"
+                  required
+                  maxLength={100}
                   value={searchKey}
-                  onChange={(e) => setSearchKey(e.target.value)}
-                  placeholder="Contoh: BNSP-2026-88912"
-                  className="w-full bg-background border border-muted/30 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+                  onChange={(event) => setSearchKey(event.target.value)}
+                  placeholder="Masukkan nomor pada sertifikat"
+                  className="min-h-12 w-full rounded-xl border border-input bg-background pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full sm:w-auto bg-primary text-primary-foreground px-6 py-3.5 rounded-2xl font-bold text-xs sm:text-sm hover:opacity-90 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <span>Memeriksa...</span>
-                  ) : (
-                    <>
-                      <Search className="h-4 w-4" />
-                      <span>Verifikasi</span>
-                    </>
-                  )}
-                </button>
-                {isSearched && (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="p-3.5 rounded-2xl border border-muted/30 bg-background text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all"
-                    title="Reset Pencarian"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-wait disabled:opacity-60"
+              >
+                <Search className="h-4 w-4" />
+                {status === "loading" ? "Memeriksa..." : "Verifikasi"}
+              </button>
             </div>
           </form>
 
-          {/* Quick Helper / Demo Badges */}
-          <div className="pt-4 border-t border-muted/20 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Coba No. Registrasi Demo:</span>
-            <button
-              onClick={() => setSearchKey("BNSP-2026-88912")}
-              className="px-2.5 py-1 rounded-lg bg-background border border-muted/30 font-mono text-[11px] hover:border-primary/50 transition-all text-primary"
-            >
-              BNSP-2026-88912
-            </button>
-            <button
-              onClick={() => setSearchKey("BNSP-2026-11029")}
-              className="px-2.5 py-1 rounded-lg bg-background border border-muted/30 font-mono text-[11px] hover:border-primary/50 transition-all text-primary"
-            >
-              BNSP-2026-11029
-            </button>
-          </div>
-        </div>
+          {status === "loading" && (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              Memeriksa nomor sertifikat pada basis data LSP...
+            </p>
+          )}
 
-        {/* Result State: TERDAPAT DATA */}
-        {isSearched && result && (
-          <div className="bg-background border-2 border-emerald-500/30 rounded-3xl p-6 sm:p-8 space-y-8 shadow-xl relative overflow-hidden">
-            {/* Status Top Banner */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-muted/20">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-500">
-                  <CheckCircle2 className="h-8 w-8" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                      Sertifikat Sah & Terverifikasi
-                    </span>
+          {status === "error" && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-foreground"
+            >
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <p className="leading-relaxed">{errorMessage}</p>
+            </div>
+          )}
+
+          {status === "not-found" && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="rounded-xl border border-border bg-muted/30 p-5"
+            >
+              <h2 className="font-bold">Nomor sertifikat tidak ditemukan</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Periksa kembali nomor yang dimasukkan. Jika nomor sudah benar, hubungi LSP untuk meminta bantuan.
+              </p>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Cari nomor lain
+              </button>
+            </div>
+          )}
+
+          {status === "valid" && result && (
+            <section
+              aria-labelledby="certificate-result-title"
+              className="rounded-xl border border-emerald-600/30 bg-emerald-500/5 p-5 sm:p-6"
+            >
+              <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600/10 text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                      Nomor tercatat
+                    </p>
+                    <h2 id="certificate-result-title" className="text-lg font-bold">
+                      Informasi sertifikat
+                    </h2>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-foreground mt-1">
-                    Status: KOMPETEN ({result.status})
-                  </h2>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
+                  type="button"
                   onClick={() => window.print()}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-muted/30 hover:bg-muted/50 border border-muted/30 px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary print:hidden"
                 >
-                  <Download className="h-4 w-4 text-primary" />
-                  <span>Cetak / Unduh Bukti</span>
+                  Cetak hasil
                 </button>
               </div>
-            </div>
 
-            {/* Certificate Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <User className="h-3.5 w-3.5 text-primary" /> Nama Pemilik Sertifikat
-                  </span>
-                  <p className="text-lg font-black text-foreground">{result.namaLengkap}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <Award className="h-3.5 w-3.5 text-primary" /> Skema / Unit Kompetensi
-                  </span>
-                  <p className="text-sm font-bold text-foreground">{result.skemaKompetensi}</p>
-                  <p className="text-xs text-muted-foreground">{result.bidang}</p>
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-primary" /> Lembaga Sertifikasi (LSP/TUK)
-                  </span>
-                  <p className="text-xs font-semibold text-foreground">{result.penerbit}</p>
-                </div>
-              </div>
-
-              <div className="space-y-4 bg-muted/10 p-5 rounded-2xl border border-muted/20">
-                <div className="space-y-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <FileBadge className="h-3.5 w-3.5 text-primary" /> Nomor Registrasi & Sertifikat
-                  </span>
-                  <p className="text-xs font-mono font-bold text-primary">{result.nomorRegistrasi}</p>
-                  <p className="text-xs font-mono text-muted-foreground">{result.nomorSertifikat}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-muted/20">
-                  <div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> Tanggal Terbit
+              <dl className="mt-5 grid gap-5 sm:grid-cols-2">
+                <CertificateField icon={UserRound} label="Nama pemegang">
+                  {result.participant_name}
+                </CertificateField>
+                <CertificateField icon={FileBadge} label="Nomor sertifikat">
+                  <span className="break-all font-mono">{result.certificate_number}</span>
+                </CertificateField>
+                <CertificateField icon={Award} label="Skema kompetensi">
+                  {result.scheme_name}
+                  {result.scheme_code && (
+                    <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                      Kode skema: {result.scheme_code}
                     </span>
-                    <p className="text-xs font-bold text-foreground mt-0.5">{result.tanggalTerbit}</p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> Masa Berlaku
-                    </span>
-                    <p className="text-xs font-bold text-foreground mt-0.5">{result.tanggalMasaBerlaku}</p>
-                  </div>
-                </div>
+                  )}
+                </CertificateField>
+                <CertificateField icon={Calendar} label="Tanggal terbit">
+                  {formatIssuedDate(result.issued_at)}
+                </CertificateField>
+              </dl>
 
-                <div className="pt-2 border-t border-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Asesor Penguji:</span>
-                  <span className="font-semibold text-foreground">{result.asesor}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Verification Footer Note */}
-            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-between gap-4 text-xs">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <QrCode className="h-5 w-5 text-primary shrink-0" />
-                <span>Terdaftar resmi pada basis data sistem lisensi sertifikasi nasional.</span>
-              </div>
-              <a
-                href="#"
-                className="font-bold text-primary hover:underline shrink-0 inline-flex items-center gap-1"
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary print:hidden"
               >
-                <span>Lihat e-Sertifikat</span>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* Result State: TIDAK DITEMUKAN */}
-        {isSearched && !result && (
-          <div className="bg-background border-2 border-rose-500/30 rounded-3xl p-8 text-center space-y-4 shadow-lg">
-            <div className="p-4 rounded-full bg-rose-500/10 text-rose-500 w-16 h-16 mx-auto flex items-center justify-center">
-              <XCircle className="h-10 w-10" />
-            </div>
-            <div className="space-y-2 max-w-md mx-auto">
-              <h3 className="text-lg font-black text-foreground">
-                Sertifikat Tidak Ditemukan
-              </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Nomor registrasi <span className="font-mono font-bold text-foreground">{searchKey}</span> tidak terdaftar dalam database kami. Silakan periksa kembali penulisan nomor registrasi atau hubungi Sekretariat TUK.
-              </p>
-            </div>
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center gap-2 bg-muted/30 hover:bg-muted/50 border border-muted/30 px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Coba Pencarian Lain</span>
-            </button>
-          </div>
-        )}
+                <RotateCcw className="h-4 w-4" />
+                Periksa nomor lain
+              </button>
+            </section>
+          )}
+        </div>
       </div>
     </section>
   );
+}
+
+function CertificateField({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof UserRound;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+        <Icon className="h-4 w-4 text-primary" />
+        {label}
+      </dt>
+      <dd className="mt-1 break-words text-sm font-bold text-foreground">{children}</dd>
+    </div>
+  );
+}
+
+function formatIssuedDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "long",
+    timeZone: "Asia/Jakarta",
+  }).format(date);
 }

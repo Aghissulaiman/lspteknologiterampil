@@ -1,22 +1,18 @@
-"use client";
-
-import React from "react";
-import Image from "next/image";
-import { Award, CheckCircle2, ShieldCheck, Users, Target } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { CheckCircle2, ShieldCheck, Target } from "lucide-react";
 
 export default function About() {
-  const stats = [
-    { label: "Asesi Tersertifikasi", value: "10,000+", icon: Users },
-    { label: "Asesor Kompeten", value: "150+", icon: Award },
-    { label: "Skema Sertifikasi", value: "15+", icon: ShieldCheck },
+  const serviceAreas = [
+    { label: "Skema", description: "Ruang lingkup dan persyaratan sertifikasi." },
+    { label: "Asesmen", description: "Alur pengajuan dan penilaian kompetensi." },
+    { label: "Sertifikat", description: "Pemeriksaan nomor sertifikat yang diterbitkan." },
   ];
 
   const highlights = [
-    "Lisensi Resmi dari Badan Nasional Sertifikasi Profesi (BNSP)",
-    "Asesor Teruji, Profesional, dan Merupakan Praktisi Industri Aktif",
-    "Fasilitas Tempat Uji Kompetensi (TUK) Berstandar Nasional",
-    "Materi Asesmen Relevan untuk Skema Web, Digital Marketing & Jaringan",
+    "Peserta memilih skema dan jadwal yang tersedia sebelum mengajukan sertifikasi.",
+    "Persyaratan mengikuti skema yang dipilih dan ditampilkan pada halaman skema.",
+    "Proses asesmen mencakup jawaban mandiri dan bukti kompetensi peserta.",
+    "Nomor sertifikat dapat diperiksa melalui halaman verifikasi publik.",
   ];
 
   return (
@@ -49,29 +45,19 @@ export default function About() {
                   &ldquo;Menjadi lembaga pelatihan dan pengembangan kompetensi teknologi yang profesional, terpercaya, dan inovatif dalam mencetak sumber daya manusia yang kompeten, berdaya saing, serta siap menghadapi kebutuhan industri di era digital.&rdquo;
                 </p>
 
-                {/* Stats Grid */}
+                {/* Ringkasan layanan */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-border/60">
-                  {stats.map((stat, idx) => {
-                    const IconComp = stat.icon;
-                    return (
-                      <div key={idx} className="text-center">
-                        <IconComp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary mx-auto mb-1" />
-                        <span className="block text-base sm:text-lg md:text-xl font-extrabold text-foreground leading-none">
-                          {stat.value}
-                        </span>
-                        <span className="text-[8px] sm:text-[10px] text-muted-foreground font-medium mt-1 block leading-tight">
-                          {stat.label}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {serviceAreas.map((area) => (
+                    <div key={area.label} className="text-center">
+                      <span className="block text-xs font-bold text-foreground sm:text-sm">
+                        {area.label}
+                      </span>
+                      <span className="mt-1 block text-[9px] leading-tight text-muted-foreground sm:text-[10px]">
+                        {area.description}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </div>
-
-              {/* Floating Badge */}
-              <div className="absolute -bottom-4 -right-2 sm:-bottom-5 sm:right-4 bg-background border border-border rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-xl flex items-center gap-2 sm:gap-3">
-                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-orange-300 animate-pulse" />
-                <span className="text-[10px] sm:text-xs font-bold text-foreground">Terlisensi BNSP RI</span>
               </div>
 
             </div>
@@ -93,7 +79,7 @@ export default function About() {
 
             {/* Description */}
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 sm:mb-6">
-              LSP Teknologi Terampil adalah lembaga sertifikasi independen yang bertugas melaksanakan uji kompetensi profesional. Kami hadir untuk menjembatani kebutuhan dunia industri dengan melatih serta memvalidasi keahlian praktis di bidang pengembangan Web terintegrasi AI dan strategi Digital Marketing.
+              Melalui situs ini, calon asesi dapat menelusuri skema dan persyaratannya, mengikuti alur pengajuan, serta memeriksa nomor sertifikat yang tercatat.
             </p>
 
             {/* Highlights List */}
@@ -110,19 +96,18 @@ export default function About() {
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4">
-              <Button 
-                size="default" 
-                className="w-full sm:w-auto bg-primary hover:bg-orange-500 text-primary-foreground font-semibold shadow-md cursor-pointer px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base"
+              <Link
+                href="/profil/tentang"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto sm:text-base"
               >
                 Profil Lengkap LSP
-              </Button>
-              <Button 
-                variant="outline" 
-                size="default" 
-                className="w-full sm:w-auto border-border/80 font-semibold hover:bg-orange-300 cursor-pointer px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base"
+              </Link>
+              <Link
+                href="/profil/struktur"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border/80 bg-background px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:w-auto sm:text-base"
               >
                 Struktur Organisasi
-              </Button>
+              </Link>
             </div>
 
           </div>

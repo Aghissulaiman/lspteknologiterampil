@@ -1,117 +1,90 @@
-import React from "react";
 import Link from "next/link";
-import { ShieldCheck, ArrowRight, Award, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Award, FileCheck2, SearchCheck } from "lucide-react";
+
+const services = [
+  {
+    icon: Award,
+    title: "Skema sertifikasi",
+    description: "Lihat ruang lingkup skema dan unit kompetensinya.",
+    href: "/skema",
+  },
+  {
+    icon: FileCheck2,
+    title: "Pengajuan sertifikasi",
+    description: "Buat akun peserta dan lengkapi permohonan.",
+    href: "/auth/pendaftaran",
+  },
+  {
+    icon: SearchCheck,
+    title: "Verifikasi sertifikat",
+    description: "Periksa nomor sertifikat melalui basis data LSP.",
+    href: "/informasi/verifikasi-sertifikat",
+  },
+];
 
 export default function AboutHero() {
   return (
-    <section className="relative overflow-hidden bg-background pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-border/60">
-      {/* Background Accent Gradients */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[500px] w-[1000px] -translate-x-1/2 rounded-full bg-gradient-to-tr from-primary/15 via-primary/5 to-transparent blur-3xl" />
-      
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
-          
-          {/* Kolom Kiri: Headline & Deskripsi */}
-          <div className="lg:col-span-7 space-y-6 text-left">
+    <section className="relative isolate overflow-hidden border-b border-border/60 bg-background py-14 sm:py-20 lg:py-24">
+      <div className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-96 w-[min(90vw,900px)] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
 
-            {/* Main Title */}
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl leading-[1.15]">
-              Tentang LSP Teknologi <br />
-              <span className="bg-gradient-to-r from-primary via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Terampil Mayantara
-              </span>
-            </h1>
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            Profil LSP
+          </p>
+          <h1 className="mt-3 text-4xl font-black leading-tight tracking-tight text-foreground sm:text-5xl">
+            Tentang LSP Teknologi Terampil
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
+            Situs ini menyediakan informasi skema sertifikasi, alur pengajuan, persyaratan, dan layanan pemeriksaan nomor sertifikat.
+          </p>
 
-            {/* Paragraph Description */}
-            <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed">
-              LSP Teknologi Terampil Mayantara adalah lembaga pelaksana kegiatan sertifikasi kompetensi kerja di bidang teknologi informasi dan komunikasi yang berlisensi resmi dari Badan Nasional Sertifikasi Profesi (BNSP). Kami berkomitmen mencetak talenta digital yang kompeten, profesional, dan diakui secara nasional maupun global.
-            </p>
-
-            {/* Bullet Points Keunggulan Singkat */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-foreground font-medium text-base">
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span>Standar SKKNI Terintegrasi</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span>Asesor Kompetensi Sertifikasi</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span>Sertifikat Asli BNSP</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
-                <span>Jejaring TUK Luas</span>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <Link
-                href="/Landing-Page/skema"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20 transition-all hover:bg-orange-500 hover:shadow-lg active:scale-[0.98]"
-              >
-                <span>Explorasi Skema</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              
-              <Link
-                href="/Landing-Page/profile/legalitas"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-input bg-card px-6 text-base font-semibold text-foreground transition-all hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:scale-[0.98]"
-              >
-                Lihat Legalitas
-              </Link>
-            </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/skema"
+              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Lihat skema sertifikasi
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/kontak"
+              className="inline-flex min-h-11 items-center justify-center rounded-md border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Hubungi LSP
+            </Link>
           </div>
+        </div>
 
-          {/* Kolom Kanan: Card Visual Showcase / Highlight */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-md lg:max-w-none rounded-3xl border border-border/80 bg-card/60 p-6 shadow-2xl backdrop-blur-xl">
-              
-              {/* Inner Banner Badge */}
-              <div className="flex items-center justify-between pb-6 border-b border-border/60">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <Award className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-foreground text-lg leading-snug">LSP-P3 TIK</h3>
-                    <p className="text-xs text-muted-foreground">Kategori Sektor Teknologi</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                  Aktif
-                </span>
-              </div>
+        <div className="rounded-2xl border border-border bg-card p-5 sm:p-7">
+          <h2 className="text-lg font-bold text-foreground">Layanan pada situs ini</h2>
+          <ul className="mt-4 divide-y divide-border">
+            {services.map((service) => {
+              const Icon = service.icon;
 
-              {/* Stat Quick Cards */}
-              <div className="mt-6 space-y-4">
-                <div className="rounded-2xl border border-border/50 bg-background/80 p-4 transition-all hover:border-orange-400">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
-                    Lisensi Nomor
-                  </p>
-                  <p className="mt-1 text-xl font-extrabold text-foreground tracking-tight">
-                    BNSP-LSP-1234-ID
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-border/50 bg-background/80 p-4">
-                    <p className="text-xs font-semibold text-muted-foreground">Total Skema</p>
-                    <p className="mt-1 text-2xl font-bold text-primary">5+</p>
-                  </div>
-                  <div className="rounded-2xl border border-border/50 bg-background/80 p-4">
-                    <p className="text-xs font-semibold text-muted-foreground">Asesi Lulus</p>
-                    <p className="mt-1 text-2xl font-bold text-foreground">......</p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
+              return (
+                <li key={service.href}>
+                  <Link
+                    href={service.href}
+                    className="group flex min-h-20 items-center gap-4 py-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-bold text-foreground group-hover:text-primary">
+                        {service.title}
+                      </span>
+                      <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                        {service.description}
+                      </span>
+                    </span>
+                    <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </section>
